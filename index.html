@@ -1,0 +1,3329 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark h-full bg-slate-950 text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rugby Tagger Pro — Édition Club &amp; Drive</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Font: Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+    .pitch-field {
+      background: linear-gradient(90deg, #14532d 0%, #15803d 50%, #14532d 100%);
+    }
+    .pitch-line {
+      border-color: rgba(255, 255, 255, 0.4);
+    }
+    .pitch-line-dashed {
+      border-color: rgba(255, 255, 255, 0.4);
+      border-style: dashed;
+    }
+  </style>
+</head>
+<body class="h-full flex flex-col font-sans overflow-hidden bg-slate-950 text-slate-100">
+
+  <!-- TOP NAVIGATION HEADER -->
+  <header class="h-14 border-b border-slate-800 bg-slate-900 px-3 flex items-center justify-between shrink-0 z-10 gap-2">
+    <div class="flex items-center space-x-2.5 shrink-0">
+      <div class="bg-emerald-500 text-slate-950 p-2 rounded-lg font-black text-lg flex items-center justify-center w-8 h-8 shadow-lg shadow-emerald-500/20">
+        <i class="fa-solid fa-football"></i>
+      </div>
+      <div>
+        <div class="flex items-center space-x-1.5">
+          <h1 class="font-extrabold text-sm leading-none text-white tracking-wide">RUGBY TAGGER PRO</h1>
+          <span class="bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[9px] font-black px-1.5 py-0.5 rounded uppercase">Club &amp; Drive</span>
+        </div>
+        <p class="text-[10px] text-slate-400 font-semibold hidden sm:block">Espace Club Partagé, Drive Vidéo &amp; Montage</p>
+      </div>
+    </div>
+
+    <!-- Match Information & Team Selectors -->
+    <div class="flex items-center space-x-1.5 overflow-x-auto py-1">
+      <div class="flex items-center bg-slate-950 rounded-lg p-1 border border-slate-800 shadow-inner shrink-0">
+        <input type="text" id="teamA-name" value="NOTRE ÉQUIPE" onchange="updateTeamLabels()" class="bg-emerald-950/60 text-emerald-300 font-bold text-xs text-center px-2 py-0.5 rounded outline-none border border-emerald-700/50 w-24 uppercase focus:border-emerald-400">
+        <span class="text-slate-500 font-bold px-1 text-[10px]">VS</span>
+        <input type="text" id="teamB-name" value="ADVERSAIRE" onchange="updateTeamLabels()" class="bg-rose-950/60 text-rose-300 font-bold text-xs text-center px-2 py-0.5 rounded outline-none border border-rose-700/50 w-24 uppercase focus:border-rose-400">
+      </div>
+
+      <!-- Club Account Badge & Drive Trigger -->
+      <div class="flex items-center bg-slate-950 border border-slate-800 rounded-lg p-0.5 shrink-0 space-x-0.5">
+        <button onclick="openClubPortalModal()" id="club-account-btn" class="flex items-center space-x-1.5 px-2 py-1 rounded text-xs font-bold text-slate-200 hover:bg-slate-800 transition" title="Gérer le compte Club et les accès">
+          <span id="club-status-dot" class="w-2 h-2 rounded-full bg-amber-400"></span>
+          <i class="fa-solid fa-shield-halved text-emerald-400 text-[11px]"></i>
+          <span id="header-club-name" class="text-[11px] font-extrabold text-emerald-300 max-w-[110px] truncate">Compte Club</span>
+        </button>
+
+        <button onclick="openDriveModal()" class="bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs px-2.5 py-1 rounded flex items-center space-x-1.5 transition shadow" title="Ouvrir le Drive Club et les matchs codés">
+          <i class="fa-solid fa-hard-drive"></i>
+          <span>Drive &amp; Matchs</span>
+          <span id="header-matches-count" class="bg-slate-950/60 text-sky-200 font-mono text-[10px] px-1.5 rounded-full">0</span>
+        </button>
+
+        <button onclick="copyClubInviteLink()" title="Copier le lien d'accès direct au Club et à ce match" class="bg-slate-800 hover:bg-slate-700 text-sky-300 font-bold text-xs px-2 py-1 rounded flex items-center space-x-1 transition">
+          <i class="fa-solid fa-share-from-square"></i>
+          <span class="hidden md:inline">Inviter</span>
+        </button>
+      </div>
+
+      <!-- Studio Montage & Export Vidéo -->
+      <button onclick="openMontageModal()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs px-2.5 py-1.5 rounded-lg flex items-center space-x-1.5 transition shadow-lg shadow-amber-500/20 shrink-0">
+        <i class="fa-solid fa-film"></i>
+        <span>Montage</span>
+      </button>
+
+      <!-- Download App HTML -->
+      <button onclick="downloadSelfApp()" title="Télécharger l'application HTML autonome" class="bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-black text-xs px-2 py-1.5 rounded-lg flex items-center space-x-1 transition shrink-0">
+        <i class="fa-solid fa-download"></i>
+        <span>.HTML</span>
+      </button>
+
+      <!-- Export & Sharing Controls -->
+      <div class="flex items-center space-x-1 shrink-0">
+        <button onclick="exportCSV()" title="Exporter CSV" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs px-2 py-1.5 rounded-lg flex items-center space-x-1 transition text-slate-200">
+          <i class="fa-solid fa-file-csv text-emerald-400"></i>
+          <span>CSV</span>
+        </button>
+
+        <button onclick="exportJSON()" title="Exporter JSON" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs px-2 py-1.5 rounded-lg flex items-center space-x-1 transition text-slate-200">
+          <i class="fa-solid fa-code text-blue-400"></i>
+          <span>JSON</span>
+        </button>
+
+        <label title="Importer un fichier JSON" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs px-2 py-1.5 rounded-lg flex items-center space-x-1 transition cursor-pointer text-slate-200">
+          <i class="fa-solid fa-file-import text-amber-400"></i>
+          <span>Import</span>
+          <input type="file" id="import-json-input" accept=".json" onchange="importJSON(event)" class="hidden">
+        </label>
+
+        <!-- Coach Report & Share -->
+        <button onclick="openReportModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs px-2 py-1.5 rounded-lg flex items-center space-x-1 transition shadow">
+          <i class="fa-solid fa-chart-pie"></i>
+          <span>Rapport</span>
+        </button>
+
+        <button onclick="copySharePackage()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-bold text-xs px-2 py-1.5 rounded-lg flex items-center transition" title="Copier le résumé statistique complet">
+          <i class="fa-solid fa-copy text-emerald-400"></i>
+        </button>
+
+        <button onclick="requestClearAllData()" class="bg-rose-950/40 hover:bg-rose-900/60 border border-rose-800/60 text-rose-300 text-xs px-2 py-1.5 rounded-lg flex items-center transition" title="Réinitialiser les séquences du match">
+          <i class="fa-solid fa-trash-can"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER (2 COLUMNS FIT FULL SCREEN) -->
+  <div class="flex-1 grid grid-cols-12 gap-2 p-2 overflow-hidden h-[calc(100vh-3.5rem)]">
+
+    <!-- LEFT COLUMN: VIDEO PLAYER & FIELD MAP (6 cols) -->
+    <div class="col-span-12 lg:col-span-6 flex flex-col space-y-2 h-full overflow-hidden">
+      
+      <!-- Source Selection Bar + Pre/Post Roll Settings -->
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-2 flex flex-wrap items-center justify-between gap-2 shrink-0">
+        <div class="flex items-center space-x-2">
+          <select id="video-source-select" onchange="handleSourceChange()" class="bg-slate-950 border border-slate-700 rounded-lg text-xs px-2 py-1 text-slate-200 outline-none focus:border-emerald-500">
+            <option value="drive" selected>Drive Club / Cloud</option>
+            <option value="file">MP4 / MOV Rapide</option>
+            <option value="cam">Caméra USB-C</option>
+          </select>
+
+          <!-- Drive Club loader container -->
+          <div id="drive-input-container" class="flex items-center space-x-1.5">
+            <button onclick="openDriveModal()" class="bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs px-2.5 py-1 rounded-lg transition flex items-center space-x-1.5 shadow">
+              <i class="fa-solid fa-folder-tree"></i>
+              <span>Ouvrir le Drive</span>
+            </button>
+            <span id="loaded-file-name" class="text-[11px] text-slate-300 font-medium truncate max-w-[140px]">Aucune vidéo</span>
+          </div>
+
+          <!-- Quick local video file loader container -->
+          <div id="file-input-container" class="hidden flex items-center space-x-1.5">
+            <label class="bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold text-xs px-2.5 py-1 rounded-lg cursor-pointer transition flex items-center space-x-1">
+              <i class="fa-solid fa-folder-open"></i>
+              <span>Fichier MP4</span>
+              <input type="file" id="video-file-input" accept="video/mp4,video/webm,video/quicktime,video/*" onchange="loadVideoFile(event)" class="hidden">
+            </label>
+          </div>
+
+          <!-- Camera stream switcher container -->
+          <div id="cam-input-container" class="hidden flex items-center space-x-1">
+            <select id="camera-select" class="bg-slate-950 border border-slate-700 rounded text-xs px-1.5 py-1 text-slate-200 outline-none max-w-[110px] truncate">
+              <option value="">Caméras...</option>
+            </select>
+            <button onclick="requestPermissionAndList()" class="bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold text-xs px-1.5 py-1 rounded" title="Autoriser caméra">
+              <i class="fa-solid fa-key"></i>
+            </button>
+            <button onclick="startCamera()" class="bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-extrabold text-xs px-2 py-1 rounded">
+              Go
+            </button>
+          </div>
+        </div>
+
+        <!-- Pre-roll & Post-roll clip duration -->
+        <div class="flex items-center space-x-2 bg-slate-950 px-2 py-1 rounded-lg border border-slate-800 text-[11px]">
+          <span class="text-slate-400 font-semibold"><i class="fa-solid fa-scissors text-amber-400 mr-1"></i>Découpe :</span>
+          <label class="flex items-center space-x-1 text-slate-300" title="Secondes avant le tag">
+            <span>Avant</span>
+            <input type="number" id="preroll-sec" value="5" min="0" max="60" onchange="onRollSettingsChange()" class="w-10 bg-slate-900 border border-slate-700 rounded text-center text-amber-300 font-mono font-bold outline-none">
+            <span>s</span>
+          </label>
+          <label class="flex items-center space-x-1 text-slate-300" title="Secondes après le tag">
+            <span>Après</span>
+            <input type="number" id="postroll-sec" value="5" min="1" max="60" onchange="onRollSettingsChange()" class="w-10 bg-slate-900 border border-slate-700 rounded text-center text-amber-300 font-mono font-bold outline-none">
+            <span>s</span>
+          </label>
+        </div>
+
+        <!-- Active Match Badge -->
+        <span id="stream-status" class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1.5"></span>
+          <span id="active-match-label">Match Actif</span>
+        </span>
+      </div>
+
+      <!-- VIDEO PLAYER DISPLAY CONTAINER -->
+      <div class="bg-slate-950 rounded-xl border border-slate-800 overflow-hidden relative flex-1 flex flex-col justify-center items-center group min-h-[200px]">
+        <video id="main-video" class="w-full h-full object-contain bg-black" playsinline crossorigin="anonymous">
+          Votre navigateur ne prend pas en charge la lecture de cette vidéo.
+        </video>
+
+        <!-- Active Sequence Banner Overlay -->
+        <div id="sequence-overlay-banner" class="hidden absolute top-3 left-3 right-3 bg-slate-950/90 border border-amber-500/60 rounded-lg px-3 py-1.5 flex items-center justify-between shadow-xl z-10">
+          <div class="flex items-center space-x-2">
+            <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+            <span id="sequence-overlay-title" class="text-xs font-extrabold text-amber-300">LECTURE SÉQUENCE 1/5</span>
+            <span id="sequence-overlay-sub" class="text-[11px] text-slate-300 font-mono">00:12 → 00:22</span>
+          </div>
+          <div class="flex items-center space-x-1.5">
+            <button onclick="prevMontageClip()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-bold px-2 py-0.5 rounded">
+              <i class="fa-solid fa-backward-step"></i> Préc.
+            </button>
+            <button onclick="nextMontageClip()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-bold px-2 py-0.5 rounded">
+              Suiv. <i class="fa-solid fa-forward-step"></i>
+            </button>
+            <button onclick="stopSequencePlayback()" class="bg-rose-600 hover:bg-rose-500 text-white text-[10px] font-bold px-2 py-0.5 rounded">
+              Quitter Montage
+            </button>
+          </div>
+        </div>
+
+        <!-- Dropzone overlay when no video is loaded -->
+        <div id="video-placeholder" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/90 text-slate-400 p-4 text-center">
+          <div class="w-12 h-12 rounded-2xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-center mb-2.5">
+            <i class="fa-solid fa-hard-drive text-2xl text-sky-400"></i>
+          </div>
+          <p class="font-extrabold text-sm text-slate-100">Drive Club &amp; Lecteur Vidéo</p>
+          <p class="text-xs text-slate-400 mt-1 max-w-md">
+            Chargez un match depuis le <strong class="text-sky-300">Drive du Club</strong> (vidéos sauvegardées, Google Drive ou Cloud) ou glissez un fichier MP4 ici.
+          </p>
+          <div class="flex flex-wrap items-center justify-center gap-2 mt-3.5">
+            <button onclick="openDriveModal()" class="bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs px-3.5 py-2 rounded-lg transition flex items-center space-x-1.5 shadow-lg shadow-sky-600/20">
+              <i class="fa-solid fa-hard-drive"></i>
+              <span>Ouvrir le Drive Club</span>
+            </button>
+            <button onclick="document.getElementById('video-file-input').click()" class="bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold text-xs px-3.5 py-2 rounded-lg transition flex items-center space-x-1.5">
+              <i class="fa-solid fa-folder-open"></i>
+              <span>MP4 Local Rapide</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- VIDEO CONTROLS OVERLAY -->
+        <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-slate-950/95 via-slate-950/70 to-transparent p-2 flex flex-col space-y-1 opacity-95 group-hover:opacity-100 transition">
+          <!-- Seek Bar -->
+          <div class="flex items-center space-x-2">
+            <span id="time-current" class="text-[11px] font-mono font-bold text-emerald-400 w-12 text-right">00:00</span>
+            <input type="range" id="video-seekbar" value="0" min="0" step="0.1" oninput="onSeekbarInput(this.value)" class="flex-1 accent-emerald-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+            <span id="time-duration" class="text-[11px] font-mono text-slate-400 w-12">00:00</span>
+          </div>
+
+          <!-- Playback Action Buttons -->
+          <div class="flex items-center justify-between pt-1">
+            <div class="flex items-center space-x-1">
+              <button onclick="skipTime(-5)" title="-5 secondes" class="bg-slate-800/80 hover:bg-slate-700 text-slate-200 px-2 py-0.5 rounded text-xs">
+                -5s
+              </button>
+              <button onclick="togglePlayPause()" id="play-btn" title="Lecture / Pause [Espace]" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black px-3 py-0.5 rounded text-xs flex items-center space-x-1">
+                <i class="fa-solid fa-play" id="play-btn-icon"></i>
+                <span id="play-btn-text">JOUER</span>
+              </button>
+              <button onclick="skipTime(5)" title="+5 secondes" class="bg-slate-800/80 hover:bg-slate-700 text-slate-200 px-2 py-0.5 rounded text-xs">
+                +5s
+              </button>
+              <button onclick="stepFrame(-0.1)" title="-0.1s Image par Image" class="bg-slate-900/80 hover:bg-slate-800 text-slate-400 px-1 py-0.5 rounded text-[10px] font-mono">
+                -0.1s
+              </button>
+              <button onclick="stepFrame(0.1)" title="+0.1s Image par Image" class="bg-slate-900/80 hover:bg-slate-800 text-slate-400 px-1 py-0.5 rounded text-[10px] font-mono">
+                +0.1s
+              </button>
+            </div>
+
+            <!-- Active Possessing Team Selector -->
+            <div class="flex items-center space-x-1 bg-slate-900/90 p-0.5 rounded-lg border border-slate-800">
+              <button id="team-btn-A" onclick="setActiveTeam('A')" class="bg-emerald-600 text-slate-950 font-bold text-[11px] px-2 py-0.5 rounded transition">
+                <span id="badge-teamA">NOTRE ÉQUIPE</span>
+              </button>
+              <button id="team-btn-B" onclick="setActiveTeam('B')" class="bg-slate-800 text-slate-300 font-bold text-[11px] px-2 py-0.5 rounded transition">
+                <span id="badge-teamB">ADVERSAIRE</span>
+              </button>
+            </div>
+
+            <!-- Playback Speed -->
+            <div class="flex items-center space-x-1">
+              <select id="speed-select" onchange="changePlaybackSpeed(this.value)" class="bg-slate-900 border border-slate-700 text-[10px] rounded px-1 py-0.5 text-slate-200 outline-none">
+                <option value="0.5">0.5x</option>
+                <option value="0.75">0.75x</option>
+                <option value="1.0" selected>1.0x</option>
+                <option value="1.25">1.25x</option>
+                <option value="1.5">1.5x</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- INTERACTIVE RUGBY PITCH MAP -->
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-2 flex flex-col shrink-0">
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-xs font-bold text-slate-200 flex items-center">
+            <i class="fa-solid fa-map-pin text-emerald-400 mr-1.5"></i> Position Terrain Action
+          </span>
+          <span id="pitch-zone-label" class="text-[10px] font-mono text-emerald-400 font-bold bg-slate-950 px-2 py-0.5 rounded border border-slate-800">
+            Zone: 50m / Milieu
+          </span>
+        </div>
+
+        <!-- Pitch Graphics -->
+        <div id="rugby-pitch" onclick="onPitchClick(event)" class="pitch-field relative h-20 w-full rounded-lg border border-slate-700 cursor-crosshair overflow-hidden shadow-inner flex items-center justify-between px-2 select-none">
+          <div class="h-full border-r-2 pitch-line flex items-center justify-center w-8 bg-emerald-950/40">
+            <span class="text-[8px] font-extrabold text-white/40 rotate-90">EN-BUT</span>
+          </div>
+          <div class="h-full border-r pitch-line-dashed flex items-center">
+            <span class="text-[8px] text-white/50 -ml-2 bg-slate-950/60 px-0.5 rounded">22m</span>
+          </div>
+          <div class="h-full border-r-2 pitch-line flex items-center justify-center">
+            <span class="text-[8px] font-bold text-white/60 bg-slate-950/60 px-1 rounded">50m</span>
+          </div>
+          <div class="h-full border-l pitch-line-dashed flex items-center">
+            <span class="text-[8px] text-white/50 -mr-2 bg-slate-950/60 px-0.5 rounded">22m</span>
+          </div>
+          <div class="h-full border-l-2 pitch-line flex items-center justify-center w-8 bg-emerald-950/40">
+            <span class="text-[8px] font-extrabold text-white/40 -rotate-90">EN-BUT</span>
+          </div>
+
+          <!-- Click Marker Pin -->
+          <div id="pitch-marker" class="absolute w-3 h-3 bg-amber-400 border-2 border-slate-950 rounded-full -ml-1.5 -mt-1.5 shadow-lg pointer-events-none transition-all duration-75" style="left: 50%; top: 50%;"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN: TAGGING BUTTONS & EVENT TIMELINE (6 cols) -->
+    <div class="col-span-12 lg:col-span-6 flex flex-col space-y-2 h-full overflow-hidden">
+      
+      <!-- BUTTONS GRID FOR RUGBY EVENTS -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5 shrink-0">
+        
+        <!-- ATTAQUE (A / Z / E) -->
+        <div class="bg-slate-900/90 p-2 rounded-xl border border-slate-800 flex flex-col justify-between">
+          <div class="flex justify-between items-center mb-1">
+            <span class="text-xs font-bold text-indigo-300"><i class="fa-solid fa-bolt text-indigo-400 mr-1"></i> Attaque</span>
+          </div>
+          <div class="space-y-1">
+            <button onclick="tagEvent('Franchissement', 'Attaque', 'success')" class="w-full bg-slate-800 hover:bg-indigo-600 text-indigo-200 hover:text-white text-xs font-bold py-1 px-2 rounded text-left transition flex justify-between items-center">
+              <span>⚡ Franchissement</span>
+              <span class="text-[9px] bg-slate-900/80 px-1 rounded font-mono font-bold text-indigo-300">A</span>
+            </button>
+            <div class="grid grid-cols-2 gap-1">
+              <button onclick="tagEvent('Offload', 'Attaque', 'success')" class="bg-slate-800 hover:bg-indigo-600 text-slate-300 hover:text-white text-[10px] py-1 px-1 rounded transition flex justify-between items-center">
+                <span>Offload</span>
+                <span class="text-[9px] bg-slate-900/80 px-1 rounded font-mono font-bold text-indigo-300">Z</span>
+              </button>
+              <button onclick="tagEvent('En-Avant', 'Attaque', 'fail')" class="bg-slate-800 hover:bg-rose-600 text-rose-300 hover:text-white text-[10px] py-1 px-1 rounded transition flex justify-between items-center">
+                <span>En-Avant</span>
+                <span class="text-[9px] bg-slate-900/80 px-1 rounded font-mono font-bold text-rose-300">E</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- POINTS & JEU AU PIED (N / U / Y / O / L) -->
+        <div class="bg-slate-900/90 p-2 rounded-xl border border-slate-800 flex flex-col justify-between">
+          <div class="flex justify-between items-center mb-1">
+            <span class="text-xs font-bold text-yellow-300"><i class="fa-solid fa-trophy text-yellow-400 mr-1"></i> Points &amp; Pied</span>
+          </div>
+          <div class="space-y-1">
+            <button onclick="tagEvent('Essai Marqué', 'Points', 'success')" class="w-full bg-slate-800 hover:bg-yellow-500 hover:text-slate-950 text-yellow-300 text-xs font-bold py-1 px-2 rounded transition flex justify-between items-center">
+              <span>🏉 ESSAI (+5)</span>
+              <span class="text-[9px] bg-slate-900/80 px-1 rounded font-mono font-bold text-yellow-300">N</span>
+            </button>
+            <div class="grid grid-cols-2 gap-1">
+              <button onclick="tagEvent('Tir 3 Pts Réussi', 'Points', 'success')" class="bg-slate-800 hover:bg-emerald-600 text-emerald-300 hover:text-white text-[10px] py-1 px-1 rounded transition flex justify-between items-center">
+                <span>🎯 3 Pts</span>
+                <span class="text-[9px] bg-slate-900/80 px-1 rounded font-mono font-bold text-emerald-300">U</span>
+              </button>
+              <button onclick="tagEvent('Tir 3 Pts Échoué', 'Points', 'fail')" class="bg-slate-800 hover:bg-rose-600 text-rose-300 hover:text-white text-[10px] py-1 px-1 rounded transition flex justify-between items-center">
+                <span>❌ Manqué</span>
+                <span class="text-[9px] bg-slate-900/80 px-1 rounded font-mono font-bold text-rose-300">Y</span>
+              </button>
+            </div>
+            <div class="grid grid-cols-2 gap-1">
+              <button onclick="tagEvent('Coup de pied occupation', 'Jeu au pied', 'neutral')" class="bg-slate-800 hover:bg-amber-600 text-slate-300 hover:text-white text-[9px] py-1 px-1 rounded transition flex justify-between items-center">
+                <span>Pied Occup.</span>
+                <span class="text-[9px] bg-slate-900/80 px-1 rounded font-mono font-bold text-amber-300">O</span>
+              </button>
+              <button onclick="tagEvent('Coup de pied tactique', 'Jeu au pied', 'neutral')" class="bg-slate-800 hover:bg-amber-600 text-slate-300 hover:text-white text-[9px] py-1 px-1 rounded transition flex justify-between items-center">
+                <span>Pied Tact.</span>
+                <span class="text-[9px] bg-slate-900/80 px-1 rounded font-mono font-bold text-amber-300">L</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- PLAQUAGES (Q / D / S) -->
+        <div class="bg-slate-900/90 p-2 rounded-xl border border-slate-800 flex flex-col justify-between">
+          <div class="flex justify-between items-center mb-1">
+            <span class="text-xs font-bold text-sky-300"><i class="fa-solid fa-user-ninja text-sky-400 mr-1"></i> Plaquages</span>
+          </div>
+          <div class="space-y-1">
+            <button onclick="tagEvent('Plaquage Réussi', 'Plaquages', 'success')" class="w-full bg-slate-800 hover:bg-sky-600 text-sky-200 hover:text-white text-xs font-semibold py-1 px-2 rounded text-left transition flex justify-between items-center">
+              <span>Plaquage Réussi</span>
+              <span class="text-[9px] bg-slate-900/80 px-1 rounded font-mono font-bold text-sky-300">Q</span>
+            </button>
+            <div class="grid grid-cols-2 gap-1">
+              <button onclick="tagEvent('Plaquage Offensif', 'Plaquages', 'success')" class="bg-slate-800 hover:bg-emerald-600 text-slate-300 hover:text-white text-[10px] py-1 px-1 rounded transition flex justify-between items-center">
+                <span>Offensif</span>
+                <span class="text-[9px] bg-slate-900/80 px-1 rounded font-mono font-bold text-emerald-300">S</span>
+              </button>
+              <button onclick="tagEvent('Plaquage Manqué', 'Plaquages', 'fail')" class="bg-slate-800 hover:bg-rose-600 text-rose-300 hover:text-white text-[10px] py-1 px-1 rounded transition flex justify-between items-center">
+                <span>Manqué</span>
+                <span class="text-[9px] bg-slate-900/80 px-1 rounded font-mono font-bold text-rose-300">D</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- RUCKS (R / T / F / G) -->
+        <div class="bg-slate-900/90 p-2 rounded-xl border border-slate-800 flex flex-col justify-between">
+          <div class="flex justify-between items-center mb-1">
+            <span class="text-xs font-bold text-amber-300"><i class="fa-solid fa-people-group text-amber-400 mr-1"></i> Rucks</span>
+          </div>
+          <div class="space-y-1">
+            <div class="grid grid-cols-2 gap-1">
+              <button onclick="tagEvent('Ruck Off Gagné', 'Rucks', 'success')" class="bg-slate-800 hover:bg-amber-600 text-amber-200 text-[10px] font-semibold py-1 px-1 rounded transition flex justify-between items-center">
+                <span>Ruck Off +</span>
+                <span class="text-[9px] bg-slate-900/80 px-1 rounded font-mono font-bold text-amber-300">R</span>
+              </button>
+              <button onclick="tagEvent('Ruck Perdu', 'Rucks', 'fail')" class="bg-slate-800 hover:bg-rose-600 text-rose-300 text-[10px] py-1 px-1 rounded transition flex justify-between items-center">
+                <span>Ruck Perdu</span>
+                <span class="text-[9px] bg-slate-900/80 px-1 rounded font-mono font-bold text-rose-300">T</span>
+              </button>
+            </div>
+            <div class="grid grid-cols-2 gap-1">
+              <button onclick="tagEvent('Ruck Def Gagné', 'Rucks', 'success')" class="bg-slate-800 hover:bg-emerald-600 text-emerald-300 text-[10px] py-1 px-1 rounded transition flex justify-between items-center">
+                <span>Ruck Def +</span>
+                <span class="text-[9px] bg-slate-900/80 px-1 rounded font-mono font-bold text-emerald-300">F</span>
+              </button>
+              <button onclick="tagEvent('Grattage', 'Rucks', 'success')" class="bg-slate-800 hover:bg-emerald-600 text-emerald-300 text-[10px] py-1 px-1 rounded transition flex justify-between items-center">
+                <span>Grattage</span>
+                <span class="text-[9px] bg-slate-900/80 px-1 rounded font-mono font-bold text-emerald-300">G</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- TOUCHES (C / V / B) -->
+        <div class="bg-slate-900/90 p-2 rounded-xl border border-slate-800 flex flex-col justify-between">
+          <div class="flex justify-between items-center mb-1">
+            <span class="text-xs font-bold text-emerald-300"><i class="fa-solid fa-arrows-up-to-line text-emerald-400 mr-1"></i> Touches</span>
+          </div>
+          <div class="space-y-1">
+            <button onclick="tagEvent('Touche Gagnée', 'Touches', 'success')" class="w-full bg-slate-800 hover:bg-emerald-600 text-emerald-200 hover:text-white text-xs font-semibold py-1 px-2 rounded text-left transition flex justify-between items-center">
+              <span>Touche Gagnée</span>
+              <span class="text-[9px] bg-slate-900/80 px-1 rounded font-mono font-bold text-emerald-300">C</span>
+            </button>
+            <div class="grid grid-cols-2 gap-1">
+              <button onclick="tagEvent('Touche Volée', 'Touches', 'success')" class="bg-slate-800 hover:bg-sky-600 text-sky-300 hover:text-white text-[10px] py-1 px-1 rounded transition flex justify-between items-center">
+                <span>Volée</span>
+                <span class="text-[9px] bg-slate-900/80 px-1 rounded font-mono font-bold text-sky-300">V</span>
+              </button>
+              <button onclick="tagEvent('Touche Perdue', 'Touches', 'fail')" class="bg-slate-800 hover:bg-rose-600 text-rose-300 hover:text-white text-[10px] py-1 px-1 rounded transition flex justify-between items-center">
+                <span>Perdue</span>
+                <span class="text-[9px] bg-slate-900/80 px-1 rounded font-mono font-bold text-rose-300">B</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- MÊLÉES (H / J) & PÉNALITÉS (W / X) -->
+        <div class="bg-slate-900/90 p-2 rounded-xl border border-slate-800 flex flex-col justify-between">
+          <div class="flex justify-between items-center mb-1">
+            <span class="text-xs font-bold text-purple-300"><i class="fa-solid fa-hand-rock text-purple-400 mr-1"></i> Mêlées &amp; Fautes</span>
+          </div>
+          <div class="space-y-1">
+            <div class="grid grid-cols-2 gap-1">
+              <button onclick="tagEvent('Mêlée +', 'Mêlées', 'success')" class="bg-slate-800 hover:bg-purple-600 text-purple-200 text-[10px] font-bold py-1 px-1 rounded transition flex justify-between items-center">
+                <span>Mêlée +</span>
+                <span class="text-[9px] bg-slate-900/80 px-1 rounded font-mono font-bold text-purple-300">H</span>
+              </button>
+              <button onclick="tagEvent('Mêlée -', 'Mêlées', 'fail')" class="bg-slate-800 hover:bg-rose-600 text-rose-300 text-[10px] py-1 px-1 rounded transition flex justify-between items-center">
+                <span>Mêlée -</span>
+                <span class="text-[9px] bg-slate-900/80 px-1 rounded font-mono font-bold text-rose-300">J</span>
+              </button>
+            </div>
+            <div class="grid grid-cols-2 gap-1">
+              <button onclick="tagEvent('Pénalité Obtenue', 'Pénalités', 'success')" class="bg-slate-800 hover:bg-emerald-600 text-emerald-300 text-[10px] py-1 px-1 rounded transition font-bold flex justify-between items-center">
+                <span>Faute +</span>
+                <span class="text-[9px] bg-slate-900/80 px-1 rounded font-mono font-bold text-emerald-300">W</span>
+              </button>
+              <button onclick="tagEvent('Pénalité Concédée', 'Pénalités', 'fail')" class="bg-slate-800 hover:bg-rose-600 text-rose-300 text-[10px] py-1 px-1 rounded transition font-bold flex justify-between items-center">
+                <span>Faute -</span>
+                <span class="text-[9px] bg-slate-900/80 px-1 rounded font-mono font-bold text-rose-300">X</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- LIVE STATS DASHBOARD -->
+      <div class="grid grid-cols-5 gap-1.5 shrink-0">
+        <div class="bg-slate-900 border border-slate-800 rounded-lg p-1 text-center">
+          <span class="text-[9px] font-bold text-slate-400 uppercase block">Franchissements</span>
+          <span id="stat-breaks-count" class="text-sm font-extrabold text-indigo-400">0</span>
+        </div>
+        <div class="bg-slate-900 border border-slate-800 rounded-lg p-1 text-center">
+          <span class="text-[9px] font-bold text-slate-400 uppercase block">Plaquages</span>
+          <span id="stat-tackles-pct" class="text-sm font-extrabold text-sky-400">0%</span>
+        </div>
+        <div class="bg-slate-900 border border-slate-800 rounded-lg p-1 text-center">
+          <span class="text-[9px] font-bold text-slate-400 uppercase block">Touches</span>
+          <span id="stat-lineouts-pct" class="text-sm font-extrabold text-emerald-400">0%</span>
+        </div>
+        <div class="bg-slate-900 border border-slate-800 rounded-lg p-1 text-center">
+          <span class="text-[9px] font-bold text-slate-400 uppercase block">Mêlées</span>
+          <span id="stat-scrums-pct" class="text-sm font-extrabold text-purple-400">0%</span>
+        </div>
+        <div class="bg-slate-900 border border-slate-800 rounded-lg p-1 text-center">
+          <span class="text-[9px] font-bold text-slate-400 uppercase block">Fautes Conc.</span>
+          <span id="stat-penalties-count" class="text-sm font-extrabold text-rose-400">0</span>
+        </div>
+      </div>
+
+      <!-- TIMELINE & LOGS TABLE -->
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-2.5 flex-1 flex flex-col overflow-hidden">
+        <div class="flex flex-wrap items-center justify-between gap-1.5 pb-1.5 border-b border-slate-800 shrink-0">
+          <div class="flex items-center space-x-2">
+            <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wide flex items-center">
+              <i class="fa-solid fa-list-check text-emerald-400 mr-1.5"></i> Journal des Séquences
+            </h2>
+            <span id="event-count-badge" class="bg-slate-800 text-emerald-400 font-mono text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
+          </div>
+
+          <!-- Montage Quick Actions & Category Filter -->
+          <div class="flex items-center space-x-1.5">
+            <button onclick="playFilteredSequence()" title="Lire à la suite toutes les séquences affichées" class="bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-slate-950 border border-amber-500/50 text-[10px] font-bold px-2 py-0.5 rounded flex items-center space-x-1 transition">
+              <i class="fa-solid fa-play"></i>
+              <span>Lire la sélection</span>
+            </button>
+
+            <button onclick="openMontageModal()" title="Ouvrir l'éditeur de montage et enregistrer la vidéo des séquences" class="bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-bold px-2 py-0.5 rounded flex items-center space-x-1 transition">
+              <i class="fa-solid fa-video"></i>
+              <span>Monter / Enregistrer</span>
+            </button>
+
+            <select id="filter-category" onchange="renderLogs()" class="bg-slate-950 border border-slate-700 rounded text-[10px] px-1.5 py-0.5 text-slate-200 outline-none">
+              <option value="ALL">Toutes les actions</option>
+              <option value="Attaque">Attaque &amp; Franchissements</option>
+              <option value="Plaquages">Plaquages</option>
+              <option value="Rucks">Rucks</option>
+              <option value="Touches">Touches</option>
+              <option value="Mêlées">Mêlées</option>
+              <option value="Pénalités">Pénalités</option>
+              <option value="Points">Essais &amp; Tirs</option>
+              <option value="Jeu au pied">Jeu au pied</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Table Viewport -->
+        <div class="flex-1 overflow-y-auto mt-1">
+          <table class="w-full text-left border-collapse">
+            <thead class="sticky top-0 bg-slate-950 text-[10px] font-bold text-slate-400 uppercase border-b border-slate-800">
+              <tr>
+                <th class="py-1 px-1.5 w-6 text-center">
+                  <input type="checkbox" id="select-all-clips" onchange="toggleSelectAllClips(this.checked)" checked class="accent-amber-500 cursor-pointer" title="Sélectionner/Désélectionner pour le montage">
+                </th>
+                <th class="py-1 px-1.5">Séquence</th>
+                <th class="py-1 px-1.5">Équipe</th>
+                <th class="py-1 px-1.5">Action / Événement</th>
+                <th class="py-1 px-1.5">Zone</th>
+                <th class="py-1 px-1.5 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="logs-table-body" class="text-xs divide-y divide-slate-800/50"></tbody>
+          </table>
+
+          <div id="empty-log-msg" class="text-center py-6 text-slate-500 text-xs">
+            <i class="fa-solid fa-stopwatch text-2xl mb-1 text-slate-700 block"></i>
+            Aucune action codée sur ce match. Chargez un match codé depuis le <strong>Drive Club</strong> ou commencez à taguer.
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div> <!-- MAIN CONTAINER END -->
+
+  <!-- ========================================================================= -->
+  <!-- 1. PORTAIL COMPTE CLUB PARTAGÉ (CRÉATION / CONNEXION STAFF & JOUEURS)     -->
+  <!-- ========================================================================= -->
+  <div id="club-portal-modal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-2xl rounded-2xl p-5 shadow-2xl flex flex-col max-h-[94vh] overflow-y-auto">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div class="flex items-center space-x-2.5">
+          <div class="bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 w-9 h-9 rounded-xl flex items-center justify-center text-base">
+            <i class="fa-solid fa-shield-halved"></i>
+          </div>
+          <div>
+            <h3 class="font-black text-base text-white">Espace Compte Club Partagé</h3>
+            <p class="text-[11px] text-slate-400">Tous les membres disposant du Code Club et du Mot de passe accèdent aux matchs codés et au Drive.</p>
+          </div>
+        </div>
+        <button id="club-modal-close-btn" onclick="closeClubPortalModal()" class="text-slate-400 hover:text-white p-1">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Active Club Session Banner (shown when logged into a Club) -->
+      <div id="active-club-card" class="hidden my-3 bg-emerald-950/30 border border-emerald-500/40 rounded-xl p-3.5 space-y-2.5">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <span class="text-[10px] font-black uppercase tracking-wider text-emerald-400 block">Compte Club Connecté</span>
+            <h4 id="active-club-title" class="text-lg font-black text-white">---</h4>
+            <p class="text-xs text-slate-300 mt-0.5">
+              Code Club : <span id="active-club-code-display" class="font-mono font-black text-emerald-300 bg-slate-950 px-2 py-0.5 rounded border border-slate-800">---</span>
+              • Membre : <span id="active-member-display" class="font-bold text-sky-300">---</span>
+            </p>
+          </div>
+          <div class="flex items-center space-x-2">
+            <button onclick="openDriveModal(); closeClubPortalModal();" class="bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs px-3 py-2 rounded-lg flex items-center space-x-1.5 transition shadow">
+              <i class="fa-solid fa-hard-drive"></i>
+              <span>Accéder au Drive &amp; Matchs</span>
+            </button>
+            <button onclick="logoutClubAccount()" class="bg-rose-950/60 hover:bg-rose-900 border border-rose-800 text-rose-200 font-bold text-xs px-2.5 py-2 rounded-lg transition" title="Changer de club">
+              <i class="fa-solid fa-right-from-bracket"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Club Invite Link Box -->
+        <div class="pt-2 border-t border-emerald-800/40">
+          <label class="text-[10px] font-bold text-slate-300 uppercase block mb-1">Lien d'accès direct pour le Staff et les Joueurs :</label>
+          <div class="flex items-center space-x-1.5">
+            <input type="text" id="club-invite-url-input" readonly class="flex-1 bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 font-mono text-[11px] text-sky-300 outline-none">
+            <button onclick="copyClubInviteLink()" class="bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-black text-xs px-3 py-1.5 rounded-lg flex items-center space-x-1 shrink-0 transition">
+              <i class="fa-solid fa-copy"></i>
+              <span>Copier</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabs: Rejoindre un Club / Créer un Compte Club -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 my-2 text-xs">
+        
+        <!-- COLUMN A: REJOINDRE UN COMPTE CLUB EXISTANT -->
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-3.5 flex flex-col justify-between space-y-3">
+          <div class="space-y-2.5">
+            <div class="flex items-center space-x-2">
+              <span class="bg-sky-500/20 text-sky-400 p-1.5 rounded-lg"><i class="fa-solid fa-right-to-bracket"></i></span>
+              <h4 class="font-extrabold text-sm text-white">Connexion Compte Club</h4>
+            </div>
+            <p class="text-[11px] text-slate-400">Entrez les identifiants du club pour accéder immédiatement à l'application, au Drive et à tous les matchs codés.</p>
+
+            <div>
+              <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Code Identifiant du Club</label>
+              <input type="text" id="login-club-code" placeholder="Ex: CLUB-RUGBY-XV" class="w-full bg-slate-900 border border-slate-700 focus:border-sky-400 rounded-lg px-2.5 py-1.5 font-mono font-bold text-white uppercase outline-none">
+            </div>
+
+            <div>
+              <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Mot de passe partagé du Club</label>
+              <input type="password" id="login-club-password" placeholder="Mot de passe du club" class="w-full bg-slate-900 border border-slate-700 focus:border-sky-400 rounded-lg px-2.5 py-1.5 text-white outline-none">
+            </div>
+
+            <div>
+              <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Votre Nom / Rôle (Staff ou Joueur)</label>
+              <input type="text" id="login-member-name" placeholder="Ex: Coach Julien / Analyste" class="w-full bg-slate-900 border border-slate-700 focus:border-sky-400 rounded-lg px-2.5 py-1.5 text-white outline-none">
+            </div>
+          </div>
+
+          <button onclick="loginToClubAccount()" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-black text-xs py-2.5 rounded-lg transition shadow-lg shadow-sky-600/20 flex items-center justify-center space-x-1.5">
+            <i class="fa-solid fa-unlock"></i>
+            <span>Ouvrir l'Espace Club</span>
+          </button>
+        </div>
+
+        <!-- COLUMN B: CRÉER UN NOUVEAU COMPTE CLUB -->
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-3.5 flex flex-col justify-between space-y-3">
+          <div class="space-y-2.5">
+            <div class="flex items-center space-x-2">
+              <span class="bg-emerald-500/20 text-emerald-400 p-1.5 rounded-lg"><i class="fa-solid fa-plus-circle"></i></span>
+              <h4 class="font-extrabold text-sm text-white">Créer un Compte Club</h4>
+            </div>
+            <p class="text-[11px] text-slate-400">Créez l'espace central de votre club. Partagez ensuite le Code Club et le mot de passe à vos entraîneurs et joueurs.</p>
+
+            <div>
+              <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Nom Officiel du Club</label>
+              <input type="text" id="create-club-name" placeholder="Ex: RC Vallée d'Ognon" class="w-full bg-slate-900 border border-slate-700 focus:border-emerald-400 rounded-lg px-2.5 py-1.5 text-white font-semibold outline-none">
+            </div>
+
+            <div>
+              <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Code Club Personnalisé</label>
+              <div class="flex space-x-1">
+                <input type="text" id="create-club-code" placeholder="Ex: RCVO-2026" class="flex-1 bg-slate-900 border border-slate-700 focus:border-emerald-400 rounded-lg px-2.5 py-1.5 font-mono font-bold text-emerald-300 uppercase outline-none">
+                <button type="button" onclick="fillRandomClubCode()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 rounded-lg text-[11px]" title="Générer un code">
+                  <i class="fa-solid fa-dice"></i>
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Mot de passe partagé du Club</label>
+              <input type="password" id="create-club-password" placeholder="Choisir un mot de passe commun" class="w-full bg-slate-900 border border-slate-700 focus:border-emerald-400 rounded-lg px-2.5 py-1.5 text-white outline-none">
+            </div>
+          </div>
+
+          <button onclick="createNewClubAccount()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-black text-xs py-2.5 rounded-lg transition shadow-lg shadow-emerald-600/20 flex items-center justify-center space-x-1.5">
+            <i class="fa-solid fa-shield-halved"></i>
+            <span>Créer &amp; Activer le Club</span>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Existing Clubs Quick Directory (for convenience) -->
+      <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 mt-1">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-[10px] font-bold text-slate-400 uppercase">Clubs enregistrés sur cet espace :</span>
+          <button onclick="refreshAvailableClubs()" class="text-[10px] text-sky-400 hover:text-sky-300 font-semibold">
+            <i class="fa-solid fa-rotate mr-1"></i>Actualiser
+          </button>
+        </div>
+        <div id="available-clubs-list" class="flex flex-wrap gap-1.5">
+          <span class="text-[11px] text-slate-500">Chargement...</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 2. DRIVE DIRECT INTÉGRÉ & BIBLIOTHÈQUE DES MATCHS CODÉS DU CLUB           -->
+  <!-- ========================================================================= -->
+  <div id="drive-modal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-5xl rounded-2xl p-4 shadow-2xl flex flex-col max-h-[92vh] overflow-hidden">
+      
+      <!-- Modal Header -->
+      <div class="flex flex-wrap items-center justify-between pb-3 border-b border-slate-800 gap-2 shrink-0">
+        <div class="flex items-center space-x-2.5">
+          <div class="bg-sky-500/20 border border-sky-500/40 text-sky-400 w-9 h-9 rounded-xl flex items-center justify-center text-base">
+            <i class="fa-solid fa-hard-drive"></i>
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <h3 class="font-black text-base text-white">Drive Direct du Club &amp; Matchs Codés</h3>
+              <span id="drive-club-badge" class="bg-emerald-950 text-emerald-300 border border-emerald-700/60 font-mono text-[10px] font-bold px-2 py-0.5 rounded">CLUB</span>
+            </div>
+            <p class="text-[11px] text-slate-400">Accédez directement aux matchs codés par le staff, aux vidéos stockées dans le Drive et aux liens Google Drive / Cloud.</p>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-2">
+          <button onclick="createNewClubMatch()" class="bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-black text-xs px-3 py-1.5 rounded-lg flex items-center space-x-1.5 transition shadow">
+            <i class="fa-solid fa-plus"></i>
+            <span>Nouveau Match Codé</span>
+          </button>
+          <button onclick="closeDriveModal()" class="text-slate-400 hover:text-white p-1.5">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- TWO-COLUMN DRIVE INTERFACE -->
+      <div class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-3 my-3 overflow-y-auto">
+        
+        <!-- LEFT PANEL (6 cols): MATCHS CODÉS DU CLUB -->
+        <div class="lg:col-span-6 bg-slate-950 border border-slate-800 rounded-xl p-3 flex flex-col">
+          <div class="flex items-center justify-between pb-2 border-b border-slate-800 mb-2">
+            <h4 class="font-extrabold text-xs text-emerald-300 uppercase flex items-center">
+              <i class="fa-solid fa-football mr-1.5"></i> Matchs Codés du Club (<span id="drive-matches-total">0</span>)
+            </h4>
+            <button onclick="loadClubMatchesList()" class="text-[10px] text-sky-400 hover:text-sky-300 font-semibold">
+              <i class="fa-solid fa-rotate mr-1"></i>Synchroniser
+            </button>
+          </div>
+
+          <p class="text-[11px] text-slate-400 mb-2">
+            Cliquez sur <strong class="text-white">Ouvrir le Match</strong> pour charger instantanément toutes ses séquences taguées, ses statistiques et sa vidéo associée.
+          </p>
+
+          <div id="club-matches-container" class="flex-1 overflow-y-auto space-y-2 pr-1 min-h-[220px]">
+            <p class="text-xs text-slate-500 text-center py-6">Chargement des matchs du club...</p>
+          </div>
+        </div>
+
+        <!-- RIGHT PANEL (6 cols): DRIVE VIDÉO & FICHIERS DIRECTS -->
+        <div class="lg:col-span-6 bg-slate-950 border border-slate-800 rounded-xl p-3 flex flex-col space-y-3">
+          <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+            <h4 class="font-extrabold text-xs text-sky-300 uppercase flex items-center">
+              <i class="fa-solid fa-cloud-arrow-up mr-1.5"></i> Drive Vidéo Direct (MP4, Google Drive, Cloud)
+            </h4>
+          </div>
+
+          <!-- 1. Add Video File into Built-in Persistent Drive (IndexedDB + Firebase Storage if available) -->
+          <div class="bg-slate-900 border border-dashed border-sky-500/60 rounded-xl p-3">
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex items-center space-x-2.5">
+                <i class="fa-solid fa-film text-sky-400 text-xl"></i>
+                <div>
+                  <span class="font-bold text-xs text-white block">Ajouter une vidéo MP4 / MOV dans le Drive</span>
+                  <span class="text-[10px] text-slate-400">Sauvegardée dans le Drive intégré (et synchronisée au Cloud si actif)</span>
+                </div>
+              </div>
+              <label class="bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs px-3 py-1.5 rounded-lg cursor-pointer shrink-0 transition shadow">
+                <i class="fa-solid fa-upload mr-1"></i>Importer Vidéo
+                <input type="file" id="drive-video-upload-input" accept="video/mp4,video/webm,video/quicktime,video/*" onchange="addVideoToClubDrive(event)" class="hidden">
+              </label>
+            </div>
+
+            <!-- Progress bar -->
+            <div id="drive-upload-progress" class="hidden mt-2.5 pt-2 border-t border-slate-800">
+              <div class="flex justify-between text-[11px] mb-1">
+                <span id="drive-upload-label" class="text-sky-300 font-bold">Enregistrement dans le Drive...</span>
+                <span id="drive-upload-pct" class="font-mono font-bold text-emerald-400">0%</span>
+              </div>
+              <div class="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                <div id="drive-upload-bar" class="bg-sky-500 h-1.5 transition-all duration-150" style="width: 0%"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. Link Google Drive / Dropbox / Direct MP4 URL to Active Match -->
+          <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-amber-300 flex items-center">
+                <i class="fa-brands fa-google-drive mr-1.5"></i> Lier une vidéo Google Drive / Dropbox / URL directe
+              </span>
+            </div>
+            <p class="text-[10px] text-slate-400">
+              Collez un lien de partage <strong>Google Drive</strong> (accès "Tous les utilisateurs disposant du lien"), Dropbox ou URL MP4 : il sera automatiquement converti et associé au match actif pour tout le club.
+            </p>
+            <div class="flex items-center space-x-1.5">
+              <input type="text" id="drive-external-url-input" placeholder="https://drive.google.com/file/d/.../view ou https://.../match.mp4" class="flex-1 bg-slate-950 border border-slate-700 focus:border-amber-400 rounded-lg px-2.5 py-1.5 text-xs text-white outline-none">
+              <button onclick="attachExternalDriveLinkToMatch()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs px-3 py-1.5 rounded-lg shrink-0 transition">
+                Charger &amp; Lier
+              </button>
+            </div>
+          </div>
+
+          <!-- 3. Stored Videos List in Club Drive -->
+          <div class="flex-1 flex flex-col overflow-hidden">
+            <span class="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block">Vidéos disponibles dans le Drive :</span>
+            <div id="drive-videos-list" class="flex-1 overflow-y-auto space-y-1.5 pr-1 min-h-[120px]">
+              <p class="text-[11px] text-slate-500 text-center py-4">Aucune vidéo enregistrée dans le Drive.</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="pt-2 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-400 shrink-0">
+        <span id="drive-storage-info">Drive Club prêt • Synchronisation multi-membres active</span>
+        <button onclick="closeDriveModal()" class="bg-slate-800 hover:bg-slate-700 text-white font-bold px-4 py-1.5 rounded-lg text-xs">
+          Retour à l'analyse
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 3. STUDIO DE MONTAGE & EXPORT VIDÉO                                       -->
+  <!-- ========================================================================= -->
+  <div id="montage-modal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-4xl rounded-2xl p-4 shadow-2xl flex flex-col max-h-[92vh] overflow-hidden">
+      <div class="flex items-center justify-between pb-2.5 border-b border-slate-800 shrink-0">
+        <div>
+          <h3 class="font-extrabold text-base text-white flex items-center">
+            <i class="fa-solid fa-film text-amber-400 mr-2"></i> Studio de Montage &amp; Export Vidéo des Séquences
+          </h3>
+          <p class="text-[11px] text-slate-400">Sélectionnez, ajustez et assemblez vos séquences taguées pour les lire à la suite ou générer un fichier vidéo téléchargeable.</p>
+        </div>
+        <button onclick="closeMontageModal()" class="text-slate-400 hover:text-white p-1">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Quick Filter & Selection Bar -->
+      <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800 my-2.5 flex flex-wrap items-center justify-between gap-2 shrink-0">
+        <div class="flex items-center space-x-2">
+          <span class="text-xs font-bold text-slate-300">Sélection rapide :</span>
+          <button onclick="selectClipsByFilter('ALL')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] px-2 py-1 rounded font-semibold">Tout</button>
+          <button onclick="selectClipsByFilter('TEAM_A')" class="bg-emerald-950 hover:bg-emerald-800 text-emerald-300 border border-emerald-800 text-[11px] px-2 py-1 rounded font-semibold">Notre Équipe</button>
+          <button onclick="selectClipsByFilter('TEAM_B')" class="bg-rose-950 hover:bg-rose-800 text-rose-300 border border-rose-800 text-[11px] px-2 py-1 rounded font-semibold">Adversaire</button>
+          <button onclick="selectClipsByFilter('SUCCESS')" class="bg-indigo-950 hover:bg-indigo-800 text-indigo-300 border border-indigo-800 text-[11px] px-2 py-1 rounded font-semibold">Actions Positives</button>
+          <button onclick="selectClipsByFilter('FAIL')" class="bg-amber-950 hover:bg-amber-800 text-amber-300 border border-amber-800 text-[11px] px-2 py-1 rounded font-semibold">Fautes / Échecs</button>
+          <button onclick="selectClipsByFilter('NONE')" class="bg-slate-900 hover:bg-slate-800 text-slate-400 text-[11px] px-2 py-1 rounded">Aucun</button>
+        </div>
+
+        <div class="flex items-center space-x-3 text-xs">
+          <label class="flex items-center space-x-1.5 text-slate-300 cursor-pointer">
+            <input type="checkbox" id="montage-burn-titles" checked class="accent-amber-500">
+            <span>Incruster titre &amp; chrono sur la vidéo</span>
+          </label>
+          <span id="montage-summary-badge" class="bg-amber-500/20 text-amber-300 border border-amber-500/40 font-mono font-bold px-2.5 py-1 rounded-lg">
+            0 séquence (00:00)
+          </span>
+        </div>
+      </div>
+
+      <!-- Sequence List Editor -->
+      <div class="flex-1 overflow-y-auto bg-slate-950 rounded-xl border border-slate-800 p-2">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead class="sticky top-0 bg-slate-900 text-[10px] font-bold text-slate-400 uppercase border-b border-slate-800">
+            <tr>
+              <th class="py-1.5 px-2 w-8 text-center">Incl.</th>
+              <th class="py-1.5 px-2">Ordre</th>
+              <th class="py-1.5 px-2">Équipe</th>
+              <th class="py-1.5 px-2">Action / Titre du clip</th>
+              <th class="py-1.5 px-2">Début (s)</th>
+              <th class="py-1.5 px-2">Fin (s)</th>
+              <th class="py-1.5 px-2">Durée</th>
+              <th class="py-1.5 px-2 text-right">Déplacer</th>
+            </tr>
+          </thead>
+          <tbody id="montage-clips-body" class="divide-y divide-slate-800/50"></tbody>
+        </table>
+      </div>
+
+      <!-- Export Progress Bar -->
+      <div id="export-progress-box" class="hidden mt-2.5 bg-slate-950 border border-amber-500/50 rounded-xl p-3 shrink-0">
+        <div class="flex items-center justify-between text-xs mb-1.5">
+          <span id="export-status-text" class="font-bold text-amber-300 flex items-center">
+            <i class="fa-solid fa-spinner fa-spin mr-2"></i> Encodage du montage vidéo en cours...
+          </span>
+          <span id="export-progress-pct" class="font-mono font-bold text-emerald-400">0%</span>
+        </div>
+        <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+          <div id="export-progress-bar" class="bg-amber-500 h-2 transition-all duration-150" style="width: 0%"></div>
+        </div>
+        <div class="flex justify-end mt-2">
+          <button onclick="cancelVideoExport()" class="bg-rose-600 hover:bg-rose-500 text-white text-[11px] font-bold px-2.5 py-1 rounded">
+            Annuler l'export
+          </button>
+        </div>
+      </div>
+
+      <!-- Modal Footer Action Buttons -->
+      <div class="pt-3 mt-2 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2 shrink-0">
+        <div class="flex items-center space-x-2">
+          <button onclick="startMontagePlaybackFromModal()" class="bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-black text-xs px-3.5 py-2 rounded-lg flex items-center space-x-1.5 transition shadow">
+            <i class="fa-solid fa-play"></i>
+            <span>Lire le montage en direct</span>
+          </button>
+
+          <button onclick="exportEDLFile()" title="Exporter une liste de montage EDL (DaVinci Resolve, Premiere Pro, Shotcut)" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-bold text-xs px-3 py-2 rounded-lg flex items-center space-x-1.5 transition">
+            <i class="fa-solid fa-file-lines text-sky-400"></i>
+            <span>Exporter EDL (Pro)</span>
+          </button>
+        </div>
+
+        <div class="flex items-center space-x-2">
+          <button id="btn-render-video" onclick="renderAndDownloadMontageVideo()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs px-4 py-2 rounded-lg flex items-center space-x-1.5 transition shadow-lg shadow-amber-500/20">
+            <i class="fa-solid fa-file-video"></i>
+            <span>Enregistrer le fichier Vidéo (.WebM/.MP4)</span>
+          </button>
+          <button onclick="closeMontageModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-3 py-2 rounded-lg text-xs">
+            Fermer
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 4. COACH REPORT MODAL                                                     -->
+  <!-- ========================================================================= -->
+  <div id="report-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-3xl rounded-2xl p-4 shadow-2xl flex flex-col max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+        <div>
+          <h3 class="font-extrabold text-base text-white flex items-center">
+            <i class="fa-solid fa-clipboard-list text-emerald-400 mr-2"></i> Rapport d'Analyse Match pour les Entraîneurs
+          </h3>
+        </div>
+        <button onclick="closeReportModal()" class="text-slate-400 hover:text-white p-1">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Report Content Container -->
+      <div id="printable-report" class="space-y-3 my-3 text-xs text-slate-200">
+        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 flex justify-between items-center">
+          <div>
+            <h2 id="report-match-title" class="text-lg font-black text-white">ÉQUIPE A vs ÉQUIPE B</h2>
+            <p id="report-date-str" class="text-slate-400 text-[10px]"></p>
+          </div>
+          <div class="text-right">
+            <span id="report-total-tags" class="text-xl font-black text-emerald-400">0</span>
+            <span class="block text-[9px] text-slate-400 font-bold uppercase">Actions Tagguées</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-4 gap-2">
+          <div class="bg-slate-950 p-2 rounded-xl border border-slate-800 text-center">
+            <span class="text-slate-400 font-bold text-[9px] uppercase block">Plaquages</span>
+            <span id="report-tackle-rate" class="text-lg font-black text-sky-400">0%</span>
+          </div>
+          <div class="bg-slate-950 p-2 rounded-xl border border-slate-800 text-center">
+            <span class="text-slate-400 font-bold text-[9px] uppercase block">Touches</span>
+            <span id="report-lineout-rate" class="text-lg font-black text-emerald-400">0%</span>
+          </div>
+          <div class="bg-slate-950 p-2 rounded-xl border border-slate-800 text-center">
+            <span class="text-slate-400 font-bold text-[9px] uppercase block">Mêlées</span>
+            <span id="report-scrum-rate" class="text-lg font-black text-purple-400">0%</span>
+          </div>
+          <div class="bg-slate-950 p-2 rounded-xl border border-slate-800 text-center">
+            <span class="text-slate-400 font-bold text-[9px] uppercase block">Pénalités Conc.</span>
+            <span id="report-penalty-count" class="text-lg font-black text-rose-400">0</span>
+          </div>
+        </div>
+
+        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+          <h4 class="font-bold text-white text-xs uppercase mb-2">Chronologie des évènements du match</h4>
+          <div class="overflow-x-auto max-h-48">
+            <table class="w-full text-left text-[11px]">
+              <thead class="bg-slate-900 text-slate-400 border-b border-slate-800">
+                <tr>
+                  <th class="py-1 px-2">Temps</th>
+                  <th class="py-1 px-2">Équipe</th>
+                  <th class="py-1 px-2">Événement</th>
+                  <th class="py-1 px-2">Zone Terrain</th>
+                </tr>
+              </thead>
+              <tbody id="report-table-body" class="divide-y divide-slate-800/40"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="pt-2 border-t border-slate-800 flex justify-between items-center">
+        <button onclick="copySharePackage()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs px-3 py-1.5 rounded-lg flex items-center space-x-1">
+          <i class="fa-solid fa-copy"></i>
+          <span>Copier Synthèse</span>
+        </button>
+        <div class="flex space-x-2">
+          <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs px-3 py-1.5 rounded-lg">
+            <i class="fa-solid fa-print mr-1"></i> Imprimer
+          </button>
+          <button onclick="closeReportModal()" class="bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold px-3 py-1.5 rounded-lg text-xs">
+            Fermer
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CUSTOM TOAST & CONFIRMATION MODAL -->
+  <div id="toast-container" class="fixed bottom-4 right-4 z-[60] flex flex-col space-y-2 pointer-events-none"></div>
+
+  <div id="custom-confirm-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[70] flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-4 shadow-2xl space-y-3">
+      <h4 id="confirm-modal-title" class="font-extrabold text-sm text-white flex items-center">
+        <i class="fa-solid fa-triangle-exclamation text-amber-400 mr-2"></i> Confirmation
+      </h4>
+      <p id="confirm-modal-message" class="text-xs text-slate-300 leading-relaxed"></p>
+      <div class="flex justify-end space-x-2 pt-2 border-t border-slate-800">
+        <button id="confirm-modal-cancel" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs px-3 py-1.5 rounded-lg">
+          Annuler
+        </button>
+        <button id="confirm-modal-ok" class="bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs px-3 py-1.5 rounded-lg">
+          Confirmer
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- APPLICATION & FIREBASE + INDEXEDDB CLUB DRIVE LOGIC -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import {
+      getFirestore, doc, getDoc, setDoc, deleteDoc, onSnapshot, collection, getDocs, serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import {
+      getStorage, ref as storageRef, uploadBytesResumable, getDownloadURL, deleteObject
+    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
+
+    // =========================================================================
+    // 1. UI TOAST & CUSTOM CONFIRMATION HELPERS
+    // =========================================================================
+    window.showToast = function (message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      const styles = {
+        success: 'bg-emerald-950/95 border-emerald-500/60 text-emerald-200',
+        error: 'bg-rose-950/95 border-rose-500/60 text-rose-200',
+        warning: 'bg-amber-950/95 border-amber-500/60 text-amber-200',
+        info: 'bg-slate-900/95 border-sky-500/60 text-sky-200'
+      };
+      const icons = {
+        success: 'fa-circle-check text-emerald-400',
+        error: 'fa-circle-exclamation text-rose-400',
+        warning: 'fa-triangle-exclamation text-amber-400',
+        info: 'fa-cloud text-sky-400'
+      };
+      toast.className = `pointer-events-auto border px-3.5 py-2.5 rounded-xl shadow-2xl text-xs font-semibold flex items-center space-x-2 max-w-sm transition-all duration-200 ${styles[type] || styles.info}`;
+      toast.innerHTML = `<i class="fa-solid ${icons[type] || icons.info}"></i><span>${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 250);
+      }, 3500);
+    };
+
+    window.showConfirmDialog = function (title, message, onConfirm) {
+      const modal = document.getElementById('custom-confirm-modal');
+      document.getElementById('confirm-modal-title').innerHTML = `<i class="fa-solid fa-triangle-exclamation text-amber-400 mr-2"></i> ${title}`;
+      document.getElementById('confirm-modal-message').innerText = message;
+      modal.classList.remove('hidden');
+
+      const btnOk = document.getElementById('confirm-modal-ok');
+      const btnCancel = document.getElementById('confirm-modal-cancel');
+
+      const cleanup = () => {
+        modal.classList.add('hidden');
+        btnOk.onclick = null;
+        btnCancel.onclick = null;
+      };
+
+      btnCancel.onclick = cleanup;
+      btnOk.onclick = () => {
+        cleanup();
+        if (onConfirm) onConfirm();
+      };
+    };
+
+    // =========================================================================
+    // 2. APPLICATION STATE & CLUB / DRIVE ARCHITECTURE
+    // =========================================================================
+    let eventsLog = [];
+    let activeTeam = 'A';
+    let selectedPitchCoords = { x: 50, y: 50, label: "50m / Milieu" };
+    let mediaStream = null;
+
+    // Montage & Sequence Playback State
+    let activePlaylist = [];
+    let currentClipIndex = -1;
+    let isExportCancelled = false;
+    let activeRecorder = null;
+
+    // Club Account & Match State
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'rugby-tagger-club-v2';
+    let db = null;
+    let auth = null;
+    let storage = null;
+    let currentUser = null;
+    let isFirebaseReady = false;
+
+    let currentClub = null; // { clubCode, clubName, passwordHash }
+    let currentMemberName = 'Coach / Analyste';
+    let currentMatchId = null;
+    let currentMatchVideoUrl = '';
+    let currentMatchVideoName = '';
+    let currentMatchDriveFileId = '';
+    let unsubscribeMatch = null;
+    let lastSyncedPayloadHash = '';
+    let clubMatchesCache = [];
+
+    // Multi-tab real-time channel for offline/standalone synchronization
+    const syncChannel = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('rugby_club_sync_channel') : null;
+    if (syncChannel) {
+      syncChannel.onmessage = (msg) => {
+        if (!msg.data || !currentClub) return;
+        if (msg.data.clubCode === currentClub.clubCode) {
+          if (msg.data.type === 'MATCH_UPDATED' && msg.data.matchId === currentMatchId) {
+            loadMatchIntoWorkspace(msg.data.matchData, false);
+          }
+          loadClubMatchesList();
+          renderDriveVideosList();
+        }
+      };
+    }
+
+    const video = document.getElementById('main-video');
+    const seekbar = document.getElementById('video-seekbar');
+    const timeCurrent = document.getElementById('time-current');
+    const timeDuration = document.getElementById('time-duration');
+    const videoPlaceholder = document.getElementById('video-placeholder');
+
+    // =========================================================================
+    // 3. BUILT-IN PERSISTENT VIDEO DRIVE (INDEXEDDB)
+    // =========================================================================
+    const DRIVE_DB_NAME = 'RugbyTaggerClubDriveDB';
+    const DRIVE_STORE_NAME = 'club_videos';
+
+    function openDriveIndexedDB() {
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open(DRIVE_DB_NAME, 1);
+        req.onupgradeneeded = (e) => {
+          const idb = e.target.result;
+          if (!idb.objectStoreNames.contains(DRIVE_STORE_NAME)) {
+            const store = idb.createObjectStore(DRIVE_STORE_NAME, { keyPath: 'id' });
+            store.createIndex('clubCode', 'clubCode', { unique: false });
+          }
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function saveBlobToIndexedDBDrive(record) {
+      const idb = await openDriveIndexedDB();
+      return new Promise((resolve, reject) => {
+        const tx = idb.transaction(DRIVE_STORE_NAME, 'readwrite');
+        tx.objectStore(DRIVE_STORE_NAME).put(record);
+        tx.oncomplete = () => resolve(record);
+        tx.onerror = () => reject(tx.error);
+      });
+    }
+
+    async function getVideosFromIndexedDBDrive(clubCode) {
+      const idb = await openDriveIndexedDB();
+      return new Promise((resolve, reject) => {
+        const tx = idb.transaction(DRIVE_STORE_NAME, 'readonly');
+        const index = tx.objectStore(DRIVE_STORE_NAME).index('clubCode');
+        const req = index.getAll(clubCode);
+        req.onsuccess = () => resolve(req.result || []);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function getVideoRecordFromIndexedDB(id) {
+      const idb = await openDriveIndexedDB();
+      return new Promise((resolve, reject) => {
+        const tx = idb.transaction(DRIVE_STORE_NAME, 'readonly');
+        const req = tx.objectStore(DRIVE_STORE_NAME).get(id);
+        req.onsuccess = () => resolve(req.result || null);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function deleteVideoFromIndexedDB(id) {
+      const idb = await openDriveIndexedDB();
+      return new Promise((resolve, reject) => {
+        const tx = idb.transaction(DRIVE_STORE_NAME, 'readwrite');
+        tx.objectStore(DRIVE_STORE_NAME).delete(id);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+    }
+
+    // =========================================================================
+    // 4. GOOGLE DRIVE / DROPBOX / CLOUD URL SMART CONVERTER
+    // =========================================================================
+    function convertShareLinkToDirectVideoUrl(rawUrl) {
+      const url = rawUrl.trim();
+      // Google Drive: https://drive.google.com/file/d/FILE_ID/view?usp=sharing
+      const gdriveFileMatch = url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
+      if (gdriveFileMatch && gdriveFileMatch[1]) {
+        return `https://drive.google.com/uc?export=download&id=${gdriveFileMatch[1]}`;
+      }
+      // Google Drive open?id=FILE_ID
+      const gdriveOpenMatch = url.match(/drive\.google\.com\/open\?id=([a-zA-Z0-9_-]+)/);
+      if (gdriveOpenMatch && gdriveOpenMatch[1]) {
+        return `https://drive.google.com/uc?export=download&id=${gdriveOpenMatch[1]}`;
+      }
+      // Dropbox: replace dl=0 with raw=1
+      if (url.includes('dropbox.com')) {
+        return url.replace('?dl=0', '?raw=1').replace('&dl=0', '&raw=1');
+      }
+      return url;
+    }
+
+    // =========================================================================
+    // 5. FIREBASE & HYBRID STORAGE INITIALIZATION
+    // =========================================================================
+    async function initCloudEngine() {
+      try {
+        if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+          const firebaseConfig = JSON.parse(__firebase_config);
+          const app = initializeApp(firebaseConfig);
+          auth = getAuth(app);
+          db = getFirestore(app);
+          try {
+            storage = getStorage(app);
+          } catch (stErr) {
+            console.warn('Storage init fallback:', stErr);
+          }
+
+          if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+            await signInWithCustomToken(auth, __initial_auth_token);
+          } else {
+            await signInAnonymously(auth);
+          }
+          currentUser = auth.currentUser;
+          isFirebaseReady = !!(db && currentUser);
+        }
+      } catch (err) {
+        console.warn('Mode Drive Local/Hybride actif:', err);
+        isFirebaseReady = false;
+      }
+    }
+
+    // =========================================================================
+    // 6. COMPTE CLUB PARTAGÉ (CRÉATION, CONNEXION, INVITATION, SYNCHRONISATION)
+    // =========================================================================
+    function simpleHash(str) {
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) {
+        const chr = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + chr;
+        hash |= 0;
+      }
+      return 'H' + Math.abs(hash).toString(16);
+    }
+
+    function getUrlParams() {
+      const params = new URLSearchParams(window.location.search);
+      return {
+        club: params.get('club') ? params.get('club').trim().toUpperCase() : null,
+        match: params.get('match') ? params.get('match').trim().toUpperCase() : null
+      };
+    }
+
+    function updateBrowserUrl() {
+      if (!currentClub) return;
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.set('club', currentClub.clubCode);
+        if (currentMatchId) url.searchParams.set('match', currentMatchId);
+        window.history.replaceState({}, '', url.toString());
+        document.getElementById('club-invite-url-input').value = url.toString();
+      } catch (e) {
+        const base = window.location.href.split('?')[0];
+        const link = `${base}?club=${currentClub.clubCode}${currentMatchId ? `&match=${currentMatchId}` : ''}`;
+        document.getElementById('club-invite-url-input').value = link;
+      }
+    }
+
+    window.fillRandomClubCode = function () {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      let suffix = '';
+      for (let i = 0; i < 4; i++) suffix += chars.charAt(Math.floor(Math.random() * chars.length));
+      document.getElementById('create-club-code').value = `CLUB-${suffix}`;
+    };
+
+    window.openClubPortalModal = function () {
+      document.getElementById('club-portal-modal').classList.remove('hidden');
+      refreshAvailableClubs();
+      if (currentClub) {
+        document.getElementById('active-club-card').classList.remove('hidden');
+        document.getElementById('active-club-title').innerText = currentClub.clubName;
+        document.getElementById('active-club-code-display').innerText = currentClub.clubCode;
+        document.getElementById('active-member-display').innerText = currentMemberName;
+        updateBrowserUrl();
+      } else {
+        document.getElementById('active-club-card').classList.add('hidden');
+      }
+    };
+
+    window.closeClubPortalModal = function () {
+      if (!currentClub) {
+        showToast("Veuillez vous connecter ou créer un Compte Club pour accéder à l'espace partagé.", 'warning');
+        return;
+      }
+      document.getElementById('club-portal-modal').classList.add('hidden');
+    };
+
+    function getLocalClubsRegistry() {
+      try {
+        return JSON.parse(localStorage.getItem('rugby_clubs_registry') || '{}');
+      } catch (e) {
+        return {};
+      }
+    }
+
+    function saveLocalClubsRegistry(reg) {
+      localStorage.setItem('rugby_clubs_registry', JSON.stringify(reg));
+    }
+
+    window.createNewClubAccount = async function () {
+      const clubName = document.getElementById('create-club-name').value.trim();
+      const clubCode = document.getElementById('create-club-code').value.trim().toUpperCase().replace(/[^A-Z0-9_-]/g, '');
+      const password = document.getElementById('create-club-password').value.trim();
+
+      if (!clubName || !clubCode || !password) {
+        showToast("Veuillez remplir le nom du club, le code club et le mot de passe.", 'warning');
+        return;
+      }
+
+      const clubRecord = {
+        clubCode,
+        clubName,
+        passwordHash: simpleHash(password),
+        createdAt: Date.now()
+      };
+
+      // Check if club already exists
+      if (isFirebaseReady) {
+        const clubRef = doc(db, 'artifacts', appId, 'public', 'data', 'clubs', clubCode);
+        const snap = await getDoc(clubRef);
+        if (snap.exists()) {
+          showToast(`Le code club "${clubCode}" existe déjà. Choisissez un autre code ou connectez-vous.`, 'error');
+          return;
+        }
+        await setDoc(clubRef, {
+          ...clubRecord,
+          createdAtServer: serverTimestamp()
+        });
+      }
+
+      const reg = getLocalClubsRegistry();
+      if (reg[clubCode] && !isFirebaseReady) {
+        showToast(`Le code club "${clubCode}" existe déjà localement. Connectez-vous à gauche.`, 'error');
+        return;
+      }
+      reg[clubCode] = clubRecord;
+      saveLocalClubsRegistry(reg);
+
+      currentMemberName = 'Admin / Coach';
+      await activateClubSession(clubRecord);
+      showToast(`Compte Club "${clubName}" (${clubCode}) créé et activé !`, 'success');
+    };
+
+    window.loginToClubAccount = async function () {
+      const clubCode = document.getElementById('login-club-code').value.trim().toUpperCase();
+      const password = document.getElementById('login-club-password').value.trim();
+      const memberName = document.getElementById('login-member-name').value.trim() || 'Membre Staff';
+
+      if (!clubCode || !password) {
+        showToast("Saisissez le Code Club et le Mot de passe partagé.", 'warning');
+        return;
+      }
+
+      let foundClub = null;
+      if (isFirebaseReady) {
+        try {
+          const clubRef = doc(db, 'artifacts', appId, 'public', 'data', 'clubs', clubCode);
+          const snap = await getDoc(clubRef);
+          if (snap.exists()) {
+            foundClub = snap.data();
+          }
+        } catch (e) {
+          console.error('Erreur lecture club Cloud:', e);
+        }
+      }
+
+      if (!foundClub) {
+        const reg = getLocalClubsRegistry();
+        foundClub = reg[clubCode] || null;
+      }
+
+      if (!foundClub) {
+        showToast(`Aucun compte club trouvé avec le code "${clubCode}".`, 'error');
+        return;
+      }
+
+      if (foundClub.passwordHash !== simpleHash(password)) {
+        showToast("Mot de passe du club incorrect.", 'error');
+        return;
+      }
+
+      // Cache locally for fast offline access
+      const reg = getLocalClubsRegistry();
+      reg[clubCode] = foundClub;
+      saveLocalClubsRegistry(reg);
+
+      currentMemberName = memberName;
+      await activateClubSession(foundClub);
+      showToast(`Bienvenue ${memberName} dans l'espace ${foundClub.clubName} !`, 'success');
+    };
+
+    async function activateClubSession(clubRecord, targetMatchId = null) {
+      currentClub = clubRecord;
+      localStorage.setItem('rugby_active_club_session', JSON.stringify({
+        clubCode: clubRecord.clubCode,
+        clubName: clubRecord.clubName,
+        passwordHash: clubRecord.passwordHash,
+        memberName: currentMemberName
+      }));
+
+      document.getElementById('header-club-name').innerText = clubRecord.clubName;
+      document.getElementById('drive-club-badge').innerText = `${clubRecord.clubName} (${clubRecord.clubCode})`;
+      document.getElementById('club-status-dot').className = isFirebaseReady
+        ? 'w-2 h-2 rounded-full bg-emerald-400'
+        : 'w-2 h-2 rounded-full bg-sky-400';
+
+      document.getElementById('club-portal-modal').classList.add('hidden');
+
+      // Load all coded matches of the club
+      await loadClubMatchesList();
+      await renderDriveVideosList();
+
+      // Open requested match or the most recent club match, or create the first one
+      if (targetMatchId) {
+        await openClubMatchById(targetMatchId);
+      } else if (clubMatchesCache.length > 0) {
+        await openClubMatchById(clubMatchesCache[0].matchId);
+      } else {
+        await createNewClubMatch();
+      }
+
+      updateBrowserUrl();
+    }
+
+    window.logoutClubAccount = function () {
+      if (unsubscribeMatch) {
+        unsubscribeMatch();
+        unsubscribeMatch = null;
+      }
+      currentClub = null;
+      currentMatchId = null;
+      eventsLog = [];
+      localStorage.removeItem('rugby_active_club_session');
+      document.getElementById('header-club-name').innerText = 'Non connecté';
+      document.getElementById('club-status-dot').className = 'w-2 h-2 rounded-full bg-amber-400';
+      renderLogs();
+      updateStats();
+      openClubPortalModal();
+    };
+
+    window.refreshAvailableClubs = async function () {
+      const container = document.getElementById('available-clubs-list');
+      const clubsMap = { ...getLocalClubsRegistry() };
+
+      if (isFirebaseReady) {
+        try {
+          const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'clubs');
+          const snap = await getDocs(colRef);
+          snap.forEach(d => {
+            clubsMap[d.id] = d.data();
+          });
+        } catch (e) {
+          console.warn('Liste clubs Cloud:', e);
+        }
+      }
+
+      const codes = Object.keys(clubsMap);
+      if (codes.length === 0) {
+        container.innerHTML = `<span class="text-[11px] text-slate-500">Aucun club créé pour le moment. Créez votre espace à droite !</span>`;
+        return;
+      }
+
+      container.innerHTML = '';
+      codes.forEach(code => {
+        const c = clubsMap[code];
+        const btn = document.createElement('button');
+        btn.className = 'bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs px-2.5 py-1 rounded-lg flex items-center space-x-1.5 transition';
+        btn.innerHTML = `<i class="fa-solid fa-shield-halved text-emerald-400 text-[10px]"></i><span class="font-bold text-slate-200">${c.clubName}</span><span class="font-mono text-[10px] text-sky-400">(${c.clubCode})</span>`;
+        btn.onclick = () => {
+          document.getElementById('login-club-code').value = c.clubCode;
+          document.getElementById('login-club-password').focus();
+        };
+        container.appendChild(btn);
+      });
+    };
+
+    window.copyClubInviteLink = function () {
+      if (!currentClub) {
+        openClubPortalModal();
+        return;
+      }
+      updateBrowserUrl();
+      const link = document.getElementById('club-invite-url-input').value;
+      const tempTextArea = document.createElement('textarea');
+      tempTextArea.value = link;
+      document.body.appendChild(tempTextArea);
+      tempTextArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(tempTextArea);
+      showToast(`Lien d'accès au club "${currentClub.clubName}" copié !`, 'success');
+    };
+
+    // =========================================================================
+    // 7. GESTION DES MATCHS CODÉS DU CLUB (CLOUD + LOCAL SYNCHRONISÉ)
+    // =========================================================================
+    function generateMatchId() {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      let id = 'MATCH-';
+      for (let i = 0; i < 4; i++) id += chars.charAt(Math.floor(Math.random() * chars.length));
+      return id;
+    }
+
+    function getLocalClubMatchesKey(clubCode) {
+      return `rugby_club_matches_${clubCode}`;
+    }
+
+    function getLocalClubMatchesMap(clubCode) {
+      try {
+        return JSON.parse(localStorage.getItem(getLocalClubMatchesKey(clubCode)) || '{}');
+      } catch (e) {
+        return {};
+      }
+    }
+
+    function saveLocalClubMatchesMap(clubCode, mapObj) {
+      localStorage.setItem(getLocalClubMatchesKey(clubCode), JSON.stringify(mapObj));
+    }
+
+    window.loadClubMatchesList = async function () {
+      if (!currentClub) return;
+      const mergedMap = { ...getLocalClubMatchesMap(currentClub.clubCode) };
+
+      if (isFirebaseReady) {
+        try {
+          const colRef = collection(db, 'artifacts', appId, 'public', 'data', `club_matches_${currentClub.clubCode}`);
+          const snap = await getDocs(colRef);
+          snap.forEach(d => {
+            mergedMap[d.id] = { matchId: d.id, ...d.data() };
+          });
+          saveLocalClubMatchesMap(currentClub.clubCode, mergedMap);
+        } catch (e) {
+          console.warn('Sync liste matchs club:', e);
+        }
+      }
+
+      const list = Object.values(mergedMap).sort((a, b) => (b.updatedAtMs || 0) - (a.updatedAtMs || 0));
+      clubMatchesCache = list;
+
+      document.getElementById('header-matches-count').innerText = list.length;
+      document.getElementById('drive-matches-total').innerText = list.length;
+
+      const container = document.getElementById('club-matches-container');
+      if (list.length === 0) {
+        container.innerHTML = `<p class="text-xs text-slate-500 text-center py-6">Aucun match codé dans ce club. Cliquez sur "Nouveau Match Codé".</p>`;
+        return;
+      }
+
+      container.innerHTML = '';
+      list.forEach(m => {
+        const isCurrent = m.matchId === currentMatchId;
+        const seqCount = Array.isArray(m.events) ? m.events.length : 0;
+        const dateLabel = m.updatedAtMs ? new Date(m.updatedAtMs).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : 'Récent';
+        const hasVideo = !!(m.videoUrl || m.driveFileId);
+
+        const card = document.createElement('div');
+        card.className = `p-2.5 rounded-xl border transition ${
+          isCurrent
+            ? 'bg-emerald-950/30 border-emerald-500/60'
+            : 'bg-slate-900/80 border-slate-800 hover:border-slate-700'
+        }`;
+
+        card.innerHTML = `
+          <div class="flex items-start justify-between gap-2">
+            <div class="min-w-0">
+              <div class="flex items-center space-x-1.5">
+                <span class="font-mono text-[10px] font-black text-sky-400 bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800">${m.matchId}</span>
+                ${isCurrent ? '<span class="text-[9px] font-black uppercase bg-emerald-500 text-slate-950 px-1.5 py-0.5 rounded">Ouvert</span>' : ''}
+                ${hasVideo ? '<span class="text-[9px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 px-1.5 py-0.5 rounded"><i class="fa-solid fa-video mr-0.5"></i>Vidéo liée</span>' : ''}
+              </div>
+              <h5 class="font-extrabold text-xs text-white mt-1 truncate">${m.teamA || 'NOTRE ÉQUIPE'} <span class="text-slate-500">vs</span> ${m.teamB || 'ADVERSAIRE'}</h5>
+              <p class="text-[10px] text-slate-400 mt-0.5">
+                <strong class="text-emerald-400">${seqCount}</strong> séquence(s) codée(s) • Modifié le ${dateLabel} ${m.updatedBy ? `par ${m.updatedBy}` : ''}
+              </p>
+            </div>
+            <div class="flex items-center space-x-1 shrink-0">
+              <button onclick="openClubMatchById('${m.matchId}'); closeDriveModal();" class="${
+                isCurrent ? 'bg-emerald-600 text-slate-950' : 'bg-sky-600 hover:bg-sky-500 text-white'
+              } font-bold text-[11px] px-2.5 py-1.5 rounded-lg transition">
+                Ouvrir le Match
+              </button>
+              <button onclick="deleteClubMatch('${m.matchId}')" title="Supprimer ce match du club" class="bg-slate-800 hover:bg-rose-600 text-slate-400 hover:text-white p-1.5 rounded-lg transition">
+                <i class="fa-solid fa-trash-can text-[11px]"></i>
+              </button>
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    };
+
+    window.createNewClubMatch = async function () {
+      if (!currentClub) {
+        openClubPortalModal();
+        return;
+      }
+      const newId = generateMatchId();
+      const initialMatch = {
+        matchId: newId,
+        clubCode: currentClub.clubCode,
+        teamA: currentClub.clubName.toUpperCase().slice(0, 18),
+        teamB: 'ADVERSAIRE',
+        preroll: 5,
+        postroll: 5,
+        videoUrl: '',
+        videoName: '',
+        driveFileId: '',
+        events: [],
+        updatedAtMs: Date.now(),
+        updatedBy: currentMemberName
+      };
+
+      const mapObj = getLocalClubMatchesMap(currentClub.clubCode);
+      mapObj[newId] = initialMatch;
+      saveLocalClubMatchesMap(currentClub.clubCode, mapObj);
+
+      if (isFirebaseReady) {
+        try {
+          const docRef = doc(db, 'artifacts', appId, 'public', 'data', `club_matches_${currentClub.clubCode}`, newId);
+          await setDoc(docRef, { ...initialMatch, updatedAtServer: serverTimestamp() });
+        } catch (e) {
+          console.error('Erreur création match Cloud:', e);
+        }
+      }
+
+      await openClubMatchById(newId);
+      await loadClubMatchesList();
+      showToast(`Nouveau match créé dans le club : ${newId}`, 'success');
+    };
+
+    window.openClubMatchById = async function (matchId) {
+      if (!currentClub) return;
+
+      if (unsubscribeMatch) {
+        unsubscribeMatch();
+        unsubscribeMatch = null;
+      }
+
+      currentMatchId = matchId;
+      document.getElementById('active-match-label').innerText = matchId;
+      updateBrowserUrl();
+
+      // Load local cached version first
+      const mapObj = getLocalClubMatchesMap(currentClub.clubCode);
+      if (mapObj[matchId]) {
+        await loadMatchIntoWorkspace(mapObj[matchId], true);
+      }
+
+      // Subscribe to real-time Cloud updates if Firebase is active
+      if (isFirebaseReady) {
+        const docRef = doc(db, 'artifacts', appId, 'public', 'data', `club_matches_${currentClub.clubCode}`, matchId);
+        unsubscribeMatch = onSnapshot(
+          docRef,
+          async (snap) => {
+            if (!snap.exists()) return;
+            const data = snap.data();
+            const mMap = getLocalClubMatchesMap(currentClub.clubCode);
+            mMap[matchId] = { matchId, ...data };
+            saveLocalClubMatchesMap(currentClub.clubCode, mMap);
+            await loadMatchIntoWorkspace({ matchId, ...data }, true);
+            loadClubMatchesList();
+          },
+          (err) => {
+            console.error('Erreur écoute temps réel match:', err);
+          }
+        );
+      }
+    };
+
+    async function loadMatchIntoWorkspace(matchData, shouldAutoLoadVideo = false) {
+      const incomingHash = JSON.stringify({
+        teamA: matchData.teamA,
+        teamB: matchData.teamB,
+        preroll: matchData.preroll,
+        postroll: matchData.postroll,
+        videoUrl: matchData.videoUrl || '',
+        driveFileId: matchData.driveFileId || '',
+        events: matchData.events || []
+      });
+
+      if (incomingHash === lastSyncedPayloadHash) return;
+      lastSyncedPayloadHash = incomingHash;
+
+      document.getElementById('teamA-name').value = matchData.teamA || 'NOTRE ÉQUIPE';
+      document.getElementById('teamB-name').value = matchData.teamB || 'ADVERSAIRE';
+      updateTeamLabels(false);
+
+      if (matchData.preroll !== undefined) document.getElementById('preroll-sec').value = matchData.preroll;
+      if (matchData.postroll !== undefined) document.getElementById('postroll-sec').value = matchData.postroll;
+
+      const pre = parseFloat(document.getElementById('preroll-sec').value) || 5;
+      const post = parseFloat(document.getElementById('postroll-sec').value) || 5;
+
+      eventsLog = (matchData.events || []).map(ev => ({
+        ...ev,
+        startTime: ev.startTime !== undefined ? ev.startTime : Math.max(0, ev.timestamp - pre),
+        endTime: ev.endTime !== undefined ? ev.endTime : (ev.timestamp + post),
+        selectedForMontage: ev.selectedForMontage !== undefined ? ev.selectedForMontage : true
+      }));
+
+      renderLogs();
+      updateStats();
+      if (!document.getElementById('montage-modal').classList.contains('hidden')) {
+        renderMontageTable();
+      }
+
+      // Auto-load linked video from Drive or Cloud URL
+      if (shouldAutoLoadVideo) {
+        if (matchData.driveFileId && matchData.driveFileId !== currentMatchDriveFileId) {
+          currentMatchDriveFileId = matchData.driveFileId;
+          const rec = await getVideoRecordFromIndexedDB(matchData.driveFileId);
+          if (rec && rec.blob) {
+            const blobUrl = URL.createObjectURL(rec.blob);
+            applyVideoSourceToPlayer(blobUrl, rec.name, 'Drive Local');
+          } else if (matchData.videoUrl) {
+            currentMatchVideoUrl = matchData.videoUrl;
+            currentMatchVideoName = matchData.videoName || 'Vidéo Cloud';
+            applyVideoSourceToPlayer(matchData.videoUrl, currentMatchVideoName, 'Cloud Drive');
+          }
+        } else if (matchData.videoUrl && matchData.videoUrl !== currentMatchVideoUrl) {
+          currentMatchVideoUrl = matchData.videoUrl;
+          currentMatchVideoName = matchData.videoName || 'Vidéo Partagée';
+          applyVideoSourceToPlayer(matchData.videoUrl, currentMatchVideoName, 'Drive Cloud');
+        }
+      }
+    }
+
+    async function persistActiveMatchState() {
+      if (!currentClub || !currentMatchId) return;
+
+      const teamA = document.getElementById('teamA-name').value || 'NOTRE ÉQUIPE';
+      const teamB = document.getElementById('teamB-name').value || 'ADVERSAIRE';
+      const preroll = parseFloat(document.getElementById('preroll-sec').value) || 5;
+      const postroll = parseFloat(document.getElementById('postroll-sec').value) || 5;
+
+      const payload = {
+        matchId: currentMatchId,
+        clubCode: currentClub.clubCode,
+        teamA,
+        teamB,
+        preroll,
+        postroll,
+        videoUrl: currentMatchVideoUrl || '',
+        videoName: currentMatchVideoName || '',
+        driveFileId: currentMatchDriveFileId || '',
+        events: eventsLog,
+        updatedAtMs: Date.now(),
+        updatedBy: currentMemberName
+      };
+
+      lastSyncedPayloadHash = JSON.stringify({
+        teamA,
+        teamB,
+        preroll,
+        postroll,
+        videoUrl: currentMatchVideoUrl || '',
+        driveFileId: currentMatchDriveFileId || '',
+        events: eventsLog
+      });
+
+      const mapObj = getLocalClubMatchesMap(currentClub.clubCode);
+      mapObj[currentMatchId] = payload;
+      saveLocalClubMatchesMap(currentClub.clubCode, mapObj);
+
+      if (syncChannel) {
+        syncChannel.postMessage({
+          type: 'MATCH_UPDATED',
+          clubCode: currentClub.clubCode,
+          matchId: currentMatchId,
+          matchData: payload
+        });
+      }
+
+      if (isFirebaseReady) {
+        try {
+          const docRef = doc(db, 'artifacts', appId, 'public', 'data', `club_matches_${currentClub.clubCode}`, currentMatchId);
+          await setDoc(docRef, { ...payload, updatedAtServer: serverTimestamp() }, { merge: true });
+        } catch (e) {
+          console.error('Erreur sauvegarde match Cloud:', e);
+        }
+      }
+    }
+
+    window.deleteClubMatch = function (matchId) {
+      showConfirmDialog(
+        "Supprimer ce match codé ?",
+        `Voulez-vous supprimer définitivement le match "${matchId}" et toutes ses séquences pour tout le club ?`,
+        async () => {
+          const mapObj = getLocalClubMatchesMap(currentClub.clubCode);
+          delete mapObj[matchId];
+          saveLocalClubMatchesMap(currentClub.clubCode, mapObj);
+
+          if (isFirebaseReady) {
+            try {
+              const docRef = doc(db, 'artifacts', appId, 'public', 'data', `club_matches_${currentClub.clubCode}`, matchId);
+              await deleteDoc(docRef);
+            } catch (e) {
+              console.error('Erreur suppression match Cloud:', e);
+            }
+          }
+
+          await loadClubMatchesList();
+          if (matchId === currentMatchId) {
+            if (clubMatchesCache.length > 0) {
+              await openClubMatchById(clubMatchesCache[0].matchId);
+            } else {
+              await createNewClubMatch();
+            }
+          }
+          showToast(`Match ${matchId} supprimé du club.`, 'info');
+        }
+      );
+    };
+
+    // =========================================================================
+    // 8. DRIVE DIRECT INTÉGRÉ (UPLOAD, GOOGLE DRIVE LINKS, LECTURE DIRECTE)
+    // =========================================================================
+    window.openDriveModal = async function () {
+      if (!currentClub) {
+        openClubPortalModal();
+        return;
+      }
+      document.getElementById('drive-modal').classList.remove('hidden');
+      await loadClubMatchesList();
+      await renderDriveVideosList();
+    };
+
+    window.closeDriveModal = function () {
+      document.getElementById('drive-modal').classList.add('hidden');
+    };
+
+    window.addVideoToClubDrive = async function (event) {
+      const file = event.target.files[0];
+      if (!file || !currentClub) return;
+
+      const progressBox = document.getElementById('drive-upload-progress');
+      const progressBar = document.getElementById('drive-upload-bar');
+      const progressPct = document.getElementById('drive-upload-pct');
+      const progressLabel = document.getElementById('drive-upload-label');
+
+      progressBox.classList.remove('hidden');
+      progressBar.style.width = '20%';
+      progressPct.innerText = '20%';
+      progressLabel.innerText = `Sauvegarde de "${file.name}" dans le Drive...`;
+
+      const fileId = `VID-${Date.now()}`;
+      const record = {
+        id: fileId,
+        clubCode: currentClub.clubCode,
+        name: file.name,
+        sizeBytes: file.size,
+        type: file.type || 'video/mp4',
+        blob: file,
+        cloudUrl: '',
+        addedBy: currentMemberName,
+        addedAtMs: Date.now()
+      };
+
+      try {
+        // 1. Save immediately to persistent IndexedDB Drive
+        await saveBlobToIndexedDBDrive(record);
+        progressBar.style.width = '60%';
+        progressPct.innerText = '60%';
+
+        // Load immediately into player
+        const localUrl = URL.createObjectURL(file);
+        currentMatchDriveFileId = fileId;
+        currentMatchVideoName = file.name;
+        applyVideoSourceToPlayer(localUrl, file.name, 'Drive Club');
+
+        // 2. If Firebase Storage is available, also upload to shared Cloud Drive
+        if (isFirebaseReady && storage) {
+          progressLabel.innerText = 'Synchronisation Cloud pour tout le staff...';
+          const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+          const sRef = storageRef(storage, `artifacts/${appId}/public/club_drive/${currentClub.clubCode}/${fileId}_${safeName}`);
+          const task = uploadBytesResumable(sRef, file);
+
+          await new Promise((resolve) => {
+            task.on(
+              'state_changed',
+              (snap) => {
+                const pct = Math.round((snap.bytesTransferred / snap.totalBytes) * 100);
+                progressBar.style.width = `${pct}%`;
+                progressPct.innerText = `${pct}%`;
+              },
+              (err) => {
+                console.warn('Cloud Storage upload fallback to local Drive:', err);
+                resolve();
+              },
+              async () => {
+                const dlUrl = await getDownloadURL(task.snapshot.ref);
+                record.cloudUrl = dlUrl;
+                currentMatchVideoUrl = dlUrl;
+                await saveBlobToIndexedDBDrive(record);
+                resolve();
+              }
+            );
+          });
+        }
+
+        progressBar.style.width = '100%';
+        progressPct.innerText = '100%';
+        await persistActiveMatchState();
+        await renderDriveVideosList();
+        await loadClubMatchesList();
+        showToast(`Vidéo "${file.name}" enregistrée dans le Drive et liée au match !`, 'success');
+      } catch (err) {
+        showToast("Erreur lors de l'ajout au Drive : " + err.message, 'error');
+      } finally {
+        setTimeout(() => progressBox.classList.add('hidden'), 1500);
+        event.target.value = '';
+      }
+    };
+
+    window.attachExternalDriveLinkToMatch = async function () {
+      const rawUrl = document.getElementById('drive-external-url-input').value.trim();
+      if (!rawUrl) {
+        showToast("Veuillez coller un lien Google Drive, Dropbox ou URL vidéo.", 'warning');
+        return;
+      }
+      const playableUrl = convertShareLinkToDirectVideoUrl(rawUrl);
+      const isGDrive = rawUrl.includes('drive.google.com');
+      const label = isGDrive ? 'Vidéo Google Drive' : 'Vidéo Cloud Externe';
+
+      currentMatchVideoUrl = playableUrl;
+      currentMatchVideoName = label;
+      currentMatchDriveFileId = '';
+
+      applyVideoSourceToPlayer(playableUrl, label, isGDrive ? 'Google Drive' : 'Cloud URL');
+      await persistActiveMatchState();
+      await loadClubMatchesList();
+      closeDriveModal();
+      showToast(`${label} chargée et partagée avec le match actif !`, 'success');
+    };
+
+    window.renderDriveVideosList = async function () {
+      if (!currentClub) return;
+      const container = document.getElementById('drive-videos-list');
+      const videos = await getVideosFromIndexedDBDrive(currentClub.clubCode);
+      videos.sort((a, b) => (b.addedAtMs || 0) - (a.addedAtMs || 0));
+
+      if (videos.length === 0) {
+        container.innerHTML = `<p class="text-[11px] text-slate-500 text-center py-4">Aucune vidéo enregistrée dans le Drive local du club.</p>`;
+        return;
+      }
+
+      container.innerHTML = '';
+      videos.forEach(v => {
+        const sizeMb = (v.sizeBytes / (1024 * 1024)).toFixed(1);
+        const isLoaded = v.id === currentMatchDriveFileId;
+
+        const row = document.createElement('div');
+        row.className = `flex items-center justify-between p-2 rounded-lg border ${
+          isLoaded ? 'bg-sky-950/40 border-sky-500/50' : 'bg-slate-900 border-slate-800'
+        }`;
+
+        row.innerHTML = `
+          <div class="min-w-0 pr-2">
+            <div class="flex items-center space-x-1.5">
+              <i class="fa-solid fa-file-video text-sky-400 text-xs"></i>
+              <span class="font-bold text-xs text-slate-200 truncate">${v.name}</span>
+              ${v.cloudUrl ? '<span class="text-[9px] bg-emerald-500/20 text-emerald-300 px-1 rounded font-bold">Cloud</span>' : '<span class="text-[9px] bg-slate-800 text-slate-400 px-1 rounded">Drive Local</span>'}
+            </div>
+            <span class="text-[10px] text-slate-400">${sizeMb} Mo • Ajouté par ${v.addedBy || 'Staff'}</span>
+          </div>
+          <div class="flex items-center space-x-1 shrink-0">
+            <button onclick="loadDriveVideoIntoMatch('${v.id}')" class="bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold text-[11px] px-2.5 py-1 rounded transition">
+              Charger
+            </button>
+            <button onclick="removeVideoFromDrive('${v.id}')" title="Supprimer du Drive" class="bg-slate-800 hover:bg-rose-600 text-slate-400 hover:text-white p-1 rounded transition">
+              <i class="fa-solid fa-trash-can text-[11px]"></i>
+            </button>
+          </div>
+        `;
+        container.appendChild(row);
+      });
+    };
+
+    window.loadDriveVideoIntoMatch = async function (videoId) {
+      const rec = await getVideoRecordFromIndexedDB(videoId);
+      if (!rec) {
+        showToast("Fichier introuvable dans le Drive.", 'error');
+        return;
+      }
+      const url = rec.blob ? URL.createObjectURL(rec.blob) : rec.cloudUrl;
+      currentMatchDriveFileId = rec.id;
+      currentMatchVideoUrl = rec.cloudUrl || '';
+      currentMatchVideoName = rec.name;
+
+      applyVideoSourceToPlayer(url, rec.name, 'Drive Club');
+      await persistActiveMatchState();
+      await loadClubMatchesList();
+      closeDriveModal();
+      showToast(`Vidéo "${rec.name}" chargée dans le lecteur !`, 'success');
+    };
+
+    window.removeVideoFromDrive = function (videoId) {
+      showConfirmDialog(
+        "Supprimer la vidéo du Drive ?",
+        "Cette vidéo sera retirée du stockage Drive de ce navigateur.",
+        async () => {
+          await deleteVideoFromIndexedDB(videoId);
+          if (currentMatchDriveFileId === videoId) {
+            currentMatchDriveFileId = '';
+            await persistActiveMatchState();
+          }
+          await renderDriveVideosList();
+          showToast("Vidéo supprimée du Drive.", 'info');
+        }
+      );
+    };
+
+    function applyVideoSourceToPlayer(url, fileName, sourceBadge) {
+      video.src = url;
+      video.load();
+      document.getElementById('loaded-file-name').innerText = fileName;
+      if (videoPlaceholder) videoPlaceholder.classList.add('hidden');
+      document.getElementById('active-match-label').innerText = `${currentMatchId} • ${sourceBadge}`;
+    }
+
+    // =========================================================================
+    // 9. INITIALIZATION ON LOAD
+    // =========================================================================
+    window.onload = async function () {
+      setupKeyboardShortcuts();
+      await initCloudEngine();
+
+      const params = getUrlParams();
+      const savedSessionRaw = localStorage.getItem('rugby_active_club_session');
+
+      if (params.club) {
+        // Check if user is already logged into this club
+        if (savedSessionRaw) {
+          try {
+            const parsed = JSON.parse(savedSessionRaw);
+            if (parsed.clubCode === params.club) {
+              currentMemberName = parsed.memberName || 'Membre Staff';
+              await activateClubSession(parsed, params.match);
+            } else {
+              document.getElementById('login-club-code').value = params.club;
+              openClubPortalModal();
+            }
+          } catch (e) {
+            document.getElementById('login-club-code').value = params.club;
+            openClubPortalModal();
+          }
+        } else {
+          document.getElementById('login-club-code').value = params.club;
+          openClubPortalModal();
+        }
+      } else if (savedSessionRaw) {
+        try {
+          const parsed = JSON.parse(savedSessionRaw);
+          if (parsed && parsed.clubCode) {
+            currentMemberName = parsed.memberName || 'Membre Staff';
+            await activateClubSession(parsed, params.match);
+          } else {
+            openClubPortalModal();
+          }
+        } catch (e) {
+          openClubPortalModal();
+        }
+      } else {
+        openClubPortalModal();
+      }
+
+      // Video Time Update Listener
+      video.addEventListener('timeupdate', () => {
+        if (!isNaN(video.duration) && video.duration > 0) {
+          seekbar.value = video.currentTime;
+          seekbar.max = video.duration;
+          timeCurrent.innerText = formatTime(video.currentTime);
+          timeDuration.innerText = formatTime(video.duration);
+        } else {
+          timeCurrent.innerText = formatTime(video.currentTime || 0);
+        }
+
+        // Check active montage / clip playback boundaries
+        if (currentClipIndex >= 0 && activePlaylist[currentClipIndex]) {
+          const clip = activePlaylist[currentClipIndex];
+          if (video.currentTime >= clip.endTime) {
+            if (currentClipIndex + 1 < activePlaylist.length) {
+              playClipAtIndex(currentClipIndex + 1);
+            } else {
+              stopSequencePlayback();
+              video.pause();
+              document.getElementById('play-btn-icon').className = 'fa-solid fa-play';
+              document.getElementById('play-btn-text').innerText = 'JOUER';
+            }
+          }
+        }
+      });
+
+      video.addEventListener('loadedmetadata', () => {
+        seekbar.max = video.duration;
+        timeDuration.innerText = formatTime(video.duration);
+        if (videoPlaceholder) videoPlaceholder.classList.add('hidden');
+      });
+
+      video.addEventListener('error', () => {
+        if (video.src && video.src.includes('drive.google.com')) {
+          showToast("Google Drive bloque la lecture directe : vérifiez que le partage du fichier est bien sur 'Tous les utilisateurs disposant du lien' ou importez le fichier MP4 dans le Drive.", 'error');
+        }
+      });
+
+      // Drag and drop video file onto player
+      const container = video.parentElement;
+      container.addEventListener('dragover', (e) => e.preventDefault());
+      container.addEventListener('drop', (e) => {
+        e.preventDefault();
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+          const file = e.dataTransfer.files[0];
+          if (file.type.startsWith('video/')) {
+            loadVideoFromFileObject(file);
+          }
+        }
+      });
+    };
+
+    // =========================================================================
+    // 10. DOWNLOAD SELF APP FILE (CLEAN STANDALONE EXPORT)
+    // =========================================================================
+    window.downloadSelfApp = function () {
+      const clone = document.documentElement.cloneNode(true);
+      // Reset dynamic lists in exported copy so it starts clean
+      const logsBody = clone.querySelector('#logs-table-body');
+      if (logsBody) logsBody.innerHTML = '';
+      const toastCont = clone.querySelector('#toast-container');
+      if (toastCont) toastCont.innerHTML = '';
+
+      const htmlContent = "<!DOCTYPE html>\n" + clone.outerHTML;
+      const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'rugby_tagger_pro_club_drive.html';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      showToast("Application HTML autonome téléchargée !", 'success');
+    };
+
+    // =========================================================================
+    // 11. VIDEO SOURCE HANDLERS
+    // =========================================================================
+    window.handleSourceChange = function () {
+      const val = document.getElementById('video-source-select').value;
+      const driveContainer = document.getElementById('drive-input-container');
+      const fileContainer = document.getElementById('file-input-container');
+      const camContainer = document.getElementById('cam-input-container');
+
+      driveContainer.classList.add('hidden');
+      fileContainer.classList.add('hidden');
+      camContainer.classList.add('hidden');
+
+      if (val !== 'cam' && mediaStream) {
+        mediaStream.getTracks().forEach(t => t.stop());
+        mediaStream = null;
+      }
+
+      if (val === 'drive') {
+        driveContainer.classList.remove('hidden');
+      } else if (val === 'file') {
+        fileContainer.classList.remove('hidden');
+      } else {
+        camContainer.classList.remove('hidden');
+        requestPermissionAndList();
+      }
+    };
+
+    window.loadVideoFile = function (event) {
+      const file = event.target.files[0];
+      if (file) loadVideoFromFileObject(file);
+    };
+
+    function loadVideoFromFileObject(file) {
+      const url = URL.createObjectURL(file);
+      applyVideoSourceToPlayer(url, file.name, 'MP4 Local');
+    }
+
+    window.requestPermissionAndList = async function () {
+      const select = document.getElementById('camera-select');
+      select.innerHTML = '<option value="">Recherche caméras...</option>';
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        stream.getTracks().forEach(track => track.stop());
+        await initCameraList();
+      } catch (err) {
+        console.error("Camera access error:", err);
+        select.innerHTML = '<option value="">Caméra non accessible</option>';
+      }
+    };
+
+    async function initCameraList() {
+      const select = document.getElementById('camera-select');
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videoDevices = devices.filter(d => d.kind === 'videoinput');
+        select.innerHTML = '';
+        if (videoDevices.length === 0) {
+          select.innerHTML = '<option value="">Aucune caméra détectée</option>';
+          return;
+        }
+        videoDevices.forEach((device, idx) => {
+          const opt = document.createElement('option');
+          opt.value = device.deviceId;
+          opt.text = device.label || `Caméra USB ${idx + 1}`;
+          select.appendChild(opt);
+        });
+      } catch (err) {
+        console.error("Enumerate devices error:", err);
+      }
+    }
+
+    window.startCamera = async function () {
+      const deviceId = document.getElementById('camera-select').value;
+      try {
+        if (mediaStream) {
+          mediaStream.getTracks().forEach(t => t.stop());
+        }
+        const constraints = {
+          video: deviceId ? { deviceId: { exact: deviceId } } : true,
+          audio: false
+        };
+        mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+        video.srcObject = mediaStream;
+        video.play();
+        if (videoPlaceholder) videoPlaceholder.classList.add('hidden');
+        document.getElementById('active-match-label').innerText = `${currentMatchId} • Caméra USB`;
+      } catch (err) {
+        showToast("Impossible de démarrer la caméra : " + err.message, 'error');
+      }
+    };
+
+    // =========================================================================
+    // 12. PLAYBACK CONTROLS
+    // =========================================================================
+    window.togglePlayPause = function () {
+      if (video.paused || video.ended) {
+        video.play();
+        document.getElementById('play-btn-icon').className = 'fa-solid fa-pause';
+        document.getElementById('play-btn-text').innerText = 'PAUSE';
+      } else {
+        video.pause();
+        document.getElementById('play-btn-icon').className = 'fa-solid fa-play';
+        document.getElementById('play-btn-text').innerText = 'JOUER';
+      }
+    };
+
+    window.skipTime = function (seconds) {
+      if (video) video.currentTime = Math.max(0, video.currentTime + seconds);
+    };
+
+    window.stepFrame = function (seconds) {
+      if (video) {
+        video.pause();
+        video.currentTime = Math.max(0, video.currentTime + seconds);
+      }
+    };
+
+    window.onSeekbarInput = function (val) {
+      if (video) video.currentTime = parseFloat(val);
+    };
+
+    window.changePlaybackSpeed = function (speed) {
+      if (video) video.playbackRate = parseFloat(speed);
+    };
+
+    window.playSingleSequence = function (id) {
+      const ev = eventsLog.find(e => e.id === id);
+      if (!ev) return;
+      if (!video.src && !video.srcObject) {
+        showToast("Aucune vidéo chargée. Ouvrez le Drive Club pour charger la vidéo du match.", 'warning');
+        return;
+      }
+      activePlaylist = [ev];
+      playClipAtIndex(0);
+    };
+
+    function formatTime(seconds) {
+      const m = Math.floor(seconds / 60);
+      const s = Math.floor(seconds % 60);
+      return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    }
+
+    // =========================================================================
+    // 13. ACTIVE TEAM CONTROL & PITCH MAP
+    // =========================================================================
+    window.setActiveTeam = function (team) {
+      activeTeam = team;
+      const btnA = document.getElementById('team-btn-A');
+      const btnB = document.getElementById('team-btn-B');
+      if (team === 'A') {
+        btnA.className = "bg-emerald-600 text-slate-950 font-bold text-[11px] px-2 py-0.5 rounded transition shadow";
+        btnB.className = "bg-slate-800 text-slate-400 hover:text-white font-bold text-[11px] px-2 py-0.5 rounded transition";
+      } else {
+        btnA.className = "bg-slate-800 text-slate-400 hover:text-white font-bold text-[11px] px-2 py-0.5 rounded transition";
+        btnB.className = "bg-rose-600 text-white font-bold text-[11px] px-2 py-0.5 rounded transition shadow";
+      }
+    };
+
+    window.updateTeamLabels = function (shouldSync = true) {
+      const nameA = document.getElementById('teamA-name').value || "ÉQUIPE A";
+      const nameB = document.getElementById('teamB-name').value || "ÉQUIPE B";
+      document.getElementById('badge-teamA').innerText = nameA;
+      document.getElementById('badge-teamB').innerText = nameB;
+      if (shouldSync) {
+        persistActiveMatchState();
+      }
+    };
+
+    window.onRollSettingsChange = function () {
+      persistActiveMatchState();
+    };
+
+    window.onPitchClick = function (event) {
+      const pitch = document.getElementById('rugby-pitch');
+      const rect = pitch.getBoundingClientRect();
+      const x = Math.round(((event.clientX - rect.left) / rect.width) * 100);
+      const y = Math.round(((event.clientY - rect.top) / rect.height) * 100);
+
+      let zoneLabel = "50m / Milieu";
+      if (x < 15) zoneLabel = "En-but Gauche";
+      else if (x < 35) zoneLabel = "22m Gauche";
+      else if (x < 65) zoneLabel = "50m Milieu";
+      else if (x < 85) zoneLabel = "22m Droit";
+      else zoneLabel = "En-but Droit";
+
+      selectedPitchCoords = { x, y, label: zoneLabel };
+
+      const marker = document.getElementById('pitch-marker');
+      marker.style.left = `${x}%`;
+      marker.style.top = `${y}%`;
+
+      document.getElementById('pitch-zone-label').innerText = `Zone: ${zoneLabel} (${x}%, ${y}%)`;
+    };
+
+    // =========================================================================
+    // 14. EVENT TAGGING SYSTEM (SYNCED TO CLUB)
+    // =========================================================================
+    window.tagEvent = function (actionName, category, resultType) {
+      const currentTime = video.currentTime || 0;
+      const preRoll = parseFloat(document.getElementById('preroll-sec').value) || 5;
+      const postRoll = parseFloat(document.getElementById('postroll-sec').value) || 5;
+      const maxDur = (!isNaN(video.duration) && video.duration > 0) ? video.duration : (currentTime + postRoll);
+
+      const startTime = Math.max(0, parseFloat((currentTime - preRoll).toFixed(1)));
+      const endTime = Math.min(maxDur, parseFloat((currentTime + postRoll).toFixed(1)));
+
+      const teamName = activeTeam === 'A'
+        ? (document.getElementById('teamA-name').value || "ÉQUIPE A")
+        : (document.getElementById('teamB-name').value || "ÉQUIPE B");
+
+      const eventObj = {
+        id: Date.now() + Math.floor(Math.random() * 1000),
+        timestamp: currentTime,
+        startTime: startTime,
+        endTime: endTime,
+        timeFormatted: formatTime(currentTime),
+        teamCode: activeTeam,
+        teamName: teamName,
+        action: actionName,
+        category: category,
+        result: resultType,
+        zone: selectedPitchCoords.label,
+        pitchCoords: { x: selectedPitchCoords.x, y: selectedPitchCoords.y },
+        selectedForMontage: true
+      };
+
+      eventsLog.unshift(eventObj);
+      renderLogs();
+      updateStats();
+      persistActiveMatchState();
+    };
+
+    window.deleteEvent = function (id) {
+      eventsLog = eventsLog.filter(ev => ev.id !== id);
+      renderLogs();
+      updateStats();
+      persistActiveMatchState();
+    };
+
+    window.toggleClipSelection = function (id, isChecked) {
+      const ev = eventsLog.find(e => e.id === id);
+      if (ev) {
+        ev.selectedForMontage = isChecked;
+        persistActiveMatchState();
+      }
+    };
+
+    window.toggleSelectAllClips = function (isChecked) {
+      const filter = document.getElementById('filter-category').value;
+      eventsLog.forEach(ev => {
+        if (filter === 'ALL' || ev.category === filter) {
+          ev.selectedForMontage = isChecked;
+        }
+      });
+      renderLogs();
+      persistActiveMatchState();
+    };
+
+    // =========================================================================
+    // 15. LOGS TABLE RENDER & LIVE STATS
+    // =========================================================================
+    window.renderLogs = function () {
+      const tbody = document.getElementById('logs-table-body');
+      const filter = document.getElementById('filter-category').value;
+      const emptyMsg = document.getElementById('empty-log-msg');
+      const badge = document.getElementById('event-count-badge');
+
+      tbody.innerHTML = '';
+
+      const filteredEvents = eventsLog.filter(ev => filter === 'ALL' || ev.category === filter);
+      badge.innerText = filteredEvents.length;
+
+      if (filteredEvents.length === 0) {
+        emptyMsg.classList.remove('hidden');
+        return;
+      } else {
+        emptyMsg.classList.add('hidden');
+      }
+
+      filteredEvents.forEach(ev => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-800/60 transition cursor-pointer group";
+
+        let resultBadgeClass = "text-slate-300";
+        if (ev.result === 'success') resultBadgeClass = "text-emerald-400 font-semibold";
+        if (ev.result === 'fail') resultBadgeClass = "text-rose-400 font-semibold";
+
+        const teamBadge = ev.teamCode === 'A'
+          ? `<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-800">${ev.teamName}</span>`
+          : `<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-950 text-rose-300 border border-rose-800">${ev.teamName}</span>`;
+
+        const startStr = formatTime(ev.startTime);
+        const endStr = formatTime(ev.endTime);
+
+        tr.innerHTML = `
+          <td class="py-1 px-1.5 text-center" onclick="event.stopPropagation()">
+            <input type="checkbox" ${ev.selectedForMontage ? 'checked' : ''} onchange="toggleClipSelection(${ev.id}, this.checked)" class="accent-amber-500 cursor-pointer">
+          </td>
+          <td class="py-1 px-1.5 font-mono text-emerald-400 font-bold" onclick="playSingleSequence(${ev.id})" title="Lire la séquence (${startStr} → ${endStr})">
+            <div class="flex items-center">
+              <i class="fa-solid fa-play text-amber-400 mr-1 text-[10px]"></i>
+              <span>${ev.timeFormatted}</span>
+            </div>
+            <span class="text-[9px] text-slate-400 font-normal block">${startStr}→${endStr}</span>
+          </td>
+          <td class="py-1 px-1.5" onclick="playSingleSequence(${ev.id})">${teamBadge}</td>
+          <td class="py-1 px-1.5 ${resultBadgeClass}" onclick="playSingleSequence(${ev.id})">${ev.action}</td>
+          <td class="py-1 px-1.5 text-slate-400 text-[10px]" onclick="playSingleSequence(${ev.id})">${ev.zone}</td>
+          <td class="py-1 px-1.5 text-right whitespace-nowrap">
+            <button onclick="event.stopPropagation(); downloadSingleClipVideo(${ev.id})" title="Enregistrer cette séquence en vidéo" class="text-amber-400 hover:text-amber-300 p-1 transition">
+              <i class="fa-solid fa-download"></i>
+            </button>
+            <button onclick="event.stopPropagation(); deleteEvent(${ev.id})" title="Supprimer" class="text-slate-600 hover:text-rose-400 p-1 transition">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    };
+
+    function updateStats() {
+      const lineBreaks = eventsLog.filter(e => e.action === 'Franchissement').length;
+      document.getElementById('stat-breaks-count').innerText = lineBreaks;
+
+      const tackles = eventsLog.filter(e => e.category === 'Plaquages');
+      const tacklesMade = tackles.filter(e => e.result === 'success').length;
+      const tacklesPct = tackles.length > 0 ? Math.round((tacklesMade / tackles.length) * 100) : 0;
+      document.getElementById('stat-tackles-pct').innerText = `${tacklesPct}%`;
+
+      const lineouts = eventsLog.filter(e => e.category === 'Touches');
+      const lineoutsWon = lineouts.filter(e => e.result === 'success').length;
+      const lineoutsPct = lineouts.length > 0 ? Math.round((lineoutsWon / lineouts.length) * 100) : 0;
+      document.getElementById('stat-lineouts-pct').innerText = `${lineoutsPct}%`;
+
+      const scrums = eventsLog.filter(e => e.category === 'Mêlées');
+      const scrumsWon = scrums.filter(e => e.result === 'success').length;
+      const scrumsPct = scrums.length > 0 ? Math.round((scrumsWon / scrums.length) * 100) : 0;
+      document.getElementById('stat-scrums-pct').innerText = `${scrumsPct}%`;
+
+      const penaltiesConceded = eventsLog.filter(e => e.action.includes('Concédée')).length;
+      document.getElementById('stat-penalties-count').innerText = penaltiesConceded;
+    }
+
+    // =========================================================================
+    // 16. MONTAGE & SEQUENCE PLAYBACK / EXPORT SYSTEM
+    // =========================================================================
+    window.playFilteredSequence = function () {
+      const filter = document.getElementById('filter-category').value;
+      const filtered = [...eventsLog]
+        .filter(ev => (filter === 'ALL' || ev.category === filter) && ev.selectedForMontage)
+        .sort((a, b) => a.startTime - b.startTime);
+
+      if (filtered.length === 0) {
+        showToast("Aucune séquence sélectionnée dans ce filtre.", 'warning');
+        return;
+      }
+      if (!video.src && !video.srcObject) {
+        showToast("Veuillez d'abord charger la vidéo du match depuis le Drive Club.", 'warning');
+        return;
+      }
+      activePlaylist = filtered;
+      playClipAtIndex(0);
+    };
+
+    function playClipAtIndex(index) {
+      if (index < 0 || index >= activePlaylist.length) {
+        stopSequencePlayback();
+        return;
+      }
+      currentClipIndex = index;
+      const clip = activePlaylist[index];
+
+      const banner = document.getElementById('sequence-overlay-banner');
+      banner.classList.remove('hidden');
+      document.getElementById('sequence-overlay-title').innerText =
+        `SÉQUENCE ${index + 1}/${activePlaylist.length} : ${clip.teamName} — ${clip.action}`;
+      document.getElementById('sequence-overlay-sub').innerText =
+        `${formatTime(clip.startTime)} → ${formatTime(clip.endTime)}`;
+
+      video.currentTime = clip.startTime;
+      video.play();
+      document.getElementById('play-btn-icon').className = 'fa-solid fa-pause';
+      document.getElementById('play-btn-text').innerText = 'PAUSE';
+    }
+
+    window.nextMontageClip = function () {
+      if (currentClipIndex + 1 < activePlaylist.length) {
+        playClipAtIndex(currentClipIndex + 1);
+      } else {
+        stopSequencePlayback();
+      }
+    };
+
+    window.prevMontageClip = function () {
+      if (currentClipIndex > 0) {
+        playClipAtIndex(currentClipIndex - 1);
+      } else if (activePlaylist.length > 0) {
+        playClipAtIndex(0);
+      }
+    };
+
+    window.stopSequencePlayback = function () {
+      currentClipIndex = -1;
+      activePlaylist = [];
+      document.getElementById('sequence-overlay-banner').classList.add('hidden');
+    };
+
+    window.openMontageModal = function () {
+      if (eventsLog.length === 0) {
+        showToast("Aucune action n'a encore été taguée. Taguez des séquences avant d'ouvrir le montage.", 'warning');
+        return;
+      }
+      renderMontageTable();
+      document.getElementById('montage-modal').classList.remove('hidden');
+    };
+
+    window.closeMontageModal = function () {
+      if (activeRecorder && activeRecorder.state === 'recording') {
+        showConfirmDialog(
+          "Annuler l'enregistrement vidéo ?",
+          "Un encodage vidéo est en cours. Voulez-vous vraiment l'arrêter ?",
+          () => {
+            cancelVideoExport();
+            document.getElementById('montage-modal').classList.add('hidden');
+          }
+        );
+        return;
+      }
+      document.getElementById('montage-modal').classList.add('hidden');
+    };
+
+    window.selectClipsByFilter = function (mode) {
+      eventsLog.forEach(ev => {
+        if (mode === 'ALL') ev.selectedForMontage = true;
+        else if (mode === 'NONE') ev.selectedForMontage = false;
+        else if (mode === 'TEAM_A') ev.selectedForMontage = (ev.teamCode === 'A');
+        else if (mode === 'TEAM_B') ev.selectedForMontage = (ev.teamCode === 'B');
+        else if (mode === 'SUCCESS') ev.selectedForMontage = (ev.result === 'success');
+        else if (mode === 'FAIL') ev.selectedForMontage = (ev.result === 'fail');
+      });
+      renderLogs();
+      renderMontageTable();
+      persistActiveMatchState();
+    };
+
+    window.updateClipBounds = function (id, field, value) {
+      const ev = eventsLog.find(e => e.id === id);
+      if (!ev) return;
+      const num = Math.max(0, parseFloat(value) || 0);
+      if (field === 'startTime') {
+        ev.startTime = num;
+        if (ev.endTime <= ev.startTime) ev.endTime = ev.startTime + 1;
+      } else if (field === 'endTime') {
+        ev.endTime = Math.max(ev.startTime + 0.5, num);
+      } else if (field === 'action') {
+        ev.action = value;
+      }
+      renderLogs();
+      renderMontageTable();
+      persistActiveMatchState();
+    };
+
+    window.moveEventOrder = function (indexInArray, direction) {
+      const targetIndex = indexInArray + direction;
+      if (targetIndex < 0 || targetIndex >= eventsLog.length) return;
+      const temp = eventsLog[indexInArray];
+      eventsLog[indexInArray] = eventsLog[targetIndex];
+      eventsLog[targetIndex] = temp;
+      renderLogs();
+      renderMontageTable();
+      persistActiveMatchState();
+    };
+
+    window.renderMontageTable = function () {
+      const tbody = document.getElementById('montage-clips-body');
+      tbody.innerHTML = '';
+
+      let selectedCount = 0;
+      let totalSeconds = 0;
+
+      eventsLog.forEach((ev, idx) => {
+        const duration = Math.max(0, ev.endTime - ev.startTime);
+        if (ev.selectedForMontage) {
+          selectedCount++;
+          totalSeconds += duration;
+        }
+
+        const tr = document.createElement('tr');
+        tr.className = ev.selectedForMontage ? "bg-slate-900/60" : "opacity-50";
+
+        const teamBadge = ev.teamCode === 'A'
+          ? `<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-800">${ev.teamName}</span>`
+          : `<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-950 text-rose-300 border border-rose-800">${ev.teamName}</span>`;
+
+        tr.innerHTML = `
+          <td class="py-1.5 px-2 text-center">
+            <input type="checkbox" ${ev.selectedForMontage ? 'checked' : ''} onchange="toggleClipSelection(${ev.id}, this.checked); renderMontageTable();" class="accent-amber-500 cursor-pointer">
+          </td>
+          <td class="py-1.5 px-2 font-mono text-slate-400">#${idx + 1}</td>
+          <td class="py-1.5 px-2">${teamBadge}</td>
+          <td class="py-1.5 px-2">
+            <input type="text" value="${ev.action}" onchange="updateClipBounds(${ev.id}, 'action', this.value)" class="bg-slate-950 border border-slate-800 focus:border-amber-400 rounded px-1.5 py-0.5 text-slate-200 font-semibold w-full outline-none">
+          </td>
+          <td class="py-1.5 px-2">
+            <input type="number" step="0.5" min="0" value="${ev.startTime.toFixed(1)}" onchange="updateClipBounds(${ev.id}, 'startTime', this.value)" class="w-16 bg-slate-950 border border-slate-800 rounded px-1 py-0.5 font-mono text-emerald-400 text-center outline-none">
+          </td>
+          <td class="py-1.5 px-2">
+            <input type="number" step="0.5" min="0" value="${ev.endTime.toFixed(1)}" onchange="updateClipBounds(${ev.id}, 'endTime', this.value)" class="w-16 bg-slate-950 border border-slate-800 rounded px-1 py-0.5 font-mono text-amber-400 text-center outline-none">
+          </td>
+          <td class="py-1.5 px-2 font-mono text-slate-300 font-bold">${duration.toFixed(1)}s</td>
+          <td class="py-1.5 px-2 text-right space-x-1">
+            <button onclick="moveEventOrder(${idx}, -1)" title="Monter" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-1.5 py-0.5 rounded">
+              <i class="fa-solid fa-arrow-up text-[10px]"></i>
+            </button>
+            <button onclick="moveEventOrder(${idx}, 1)" title="Descendre" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-1.5 py-0.5 rounded">
+              <i class="fa-solid fa-arrow-down text-[10px]"></i>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById('montage-summary-badge').innerText =
+        `${selectedCount} séquence(s) (${formatTime(totalSeconds)})`;
+    };
+
+    window.startMontagePlaybackFromModal = function () {
+      const selected = eventsLog.filter(ev => ev.selectedForMontage);
+      if (selected.length === 0) {
+        showToast("Veuillez sélectionner au moins une séquence.", 'warning');
+        return;
+      }
+      if (!video.src && !video.srcObject) {
+        showToast("Veuillez d'abord charger la vidéo du match depuis le Drive Club.", 'warning');
+        return;
+      }
+      closeMontageModal();
+      activePlaylist = selected;
+      playClipAtIndex(0);
+    };
+
+    window.exportEDLFile = function () {
+      const selected = eventsLog.filter(ev => ev.selectedForMontage);
+      if (selected.length === 0) {
+        showToast("Aucune séquence sélectionnée pour l'export EDL.", 'warning');
+        return;
+      }
+      const fileName = document.getElementById('loaded-file-name').innerText || "MATCH_RUGBY.MP4";
+      let edl = `TITLE: MONTAGE RUGBY TAGGER PRO (${currentClub?.clubCode || 'CLUB'} - ${currentMatchId})\nFCM: NON-DROP FRAME\n\n`;
+      let recCursor = 0;
+
+      const toTimecode = (sec) => {
+        const h = Math.floor(sec / 3600);
+        const m = Math.floor((sec % 3600) / 60);
+        const s = Math.floor(sec % 60);
+        const f = Math.floor((sec % 1) * 25);
+        return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}:${String(f).padStart(2, '0')}`;
+      };
+
+      selected.forEach((ev, idx) => {
+        const num = String(idx + 1).padStart(3, '0');
+        const dur = Math.max(0.5, ev.endTime - ev.startTime);
+        const srcIn = toTimecode(ev.startTime);
+        const srcOut = toTimecode(ev.endTime);
+        const recIn = toTimecode(recCursor);
+        const recOut = toTimecode(recCursor + dur);
+        recCursor += dur;
+
+        edl += `${num}  AX       V     C        ${srcIn} ${srcOut} ${recIn} ${recOut}\n`;
+        edl += `* FROM CLIP NAME: ${fileName}\n`;
+        edl += `* COMMENT: [${ev.teamName}] ${ev.action} (${ev.zone})\n\n`;
+      });
+
+      const blob = new Blob([edl], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `montage_rugby_${currentMatchId}_${Date.now()}.edl`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    };
+
+    window.downloadSingleClipVideo = async function (id) {
+      const ev = eventsLog.find(e => e.id === id);
+      if (!ev) return;
+      if (!video.src) {
+        showToast("Chargez d'abord un fichier vidéo MP4 pour exporter cette séquence.", 'warning');
+        return;
+      }
+      openMontageModal();
+      await encodeClipsToVideoFile([ev], `${ev.teamName}_${ev.action}_${ev.timeFormatted.replace(':', 'm')}s`);
+    };
+
+    window.renderAndDownloadMontageVideo = async function () {
+      const selected = eventsLog.filter(ev => ev.selectedForMontage);
+      if (selected.length === 0) {
+        showToast("Sélectionnez au moins une séquence à monter.", 'warning');
+        return;
+      }
+      if (!video.src) {
+        showToast("Veuillez charger une vidéo MP4 avant de lancer l'enregistrement du montage.", 'warning');
+        return;
+      }
+      const teamA = document.getElementById('teamA-name').value || "EQUIPE_A";
+      const teamB = document.getElementById('teamB-name').value || "EQUIPE_B";
+      await encodeClipsToVideoFile(selected, `Montage_${teamA}_vs_${teamB}`);
+    };
+
+    window.cancelVideoExport = function () {
+      isExportCancelled = true;
+      if (activeRecorder && activeRecorder.state === 'recording') {
+        activeRecorder.stop();
+      }
+      video.pause();
+      document.getElementById('export-progress-box').classList.add('hidden');
+      document.getElementById('btn-render-video').disabled = false;
+    };
+
+    async function encodeClipsToVideoFile(clipsList, baseFileName) {
+      isExportCancelled = false;
+      stopSequencePlayback();
+
+      const progressBox = document.getElementById('export-progress-box');
+      const progressBar = document.getElementById('export-progress-bar');
+      const progressPct = document.getElementById('export-progress-pct');
+      const statusText = document.getElementById('export-status-text');
+      const renderBtn = document.getElementById('btn-render-video');
+      const burnTitles = document.getElementById('montage-burn-titles').checked;
+
+      progressBox.classList.remove('hidden');
+      renderBtn.disabled = true;
+      progressBar.style.width = '0%';
+      progressPct.innerText = '0%';
+
+      const srcW = video.videoWidth || 1280;
+      const srcH = video.videoHeight || 720;
+      const scale = Math.min(1, 1280 / srcW);
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(srcW * scale);
+      canvas.height = Math.round(srcH * scale);
+      const ctx = canvas.getContext('2d');
+
+      const canvasStream = canvas.captureStream(30);
+      try {
+        const vStream = video.captureStream ? video.captureStream() : (video.mozCaptureStream ? video.mozCaptureStream() : null);
+        if (vStream) {
+          vStream.getAudioTracks().forEach(track => canvasStream.addTrack(track));
+        }
+      } catch (e) {
+        console.warn("Audio track capture non disponible, export vidéo uniquement:", e);
+      }
+
+      const mimeTypes = [
+        'video/mp4;codecs=avc1',
+        'video/mp4',
+        'video/webm;codecs=vp9,opus',
+        'video/webm;codecs=vp8,opus',
+        'video/webm'
+      ];
+      let chosenMime = '';
+      for (const m of mimeTypes) {
+        if (MediaRecorder.isTypeSupported(m)) {
+          chosenMime = m;
+          break;
+        }
+      }
+      const ext = chosenMime.includes('mp4') ? 'mp4' : 'webm';
+
+      const recordedChunks = [];
+      activeRecorder = chosenMime
+        ? new MediaRecorder(canvasStream, { mimeType: chosenMime, videoBitsPerSecond: 4000000 })
+        : new MediaRecorder(canvasStream);
+
+      activeRecorder.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) recordedChunks.push(e.data);
+      };
+
+      const totalDuration = clipsList.reduce((acc, c) => acc + Math.max(0.5, c.endTime - c.startTime), 0);
+      let elapsedEncoded = 0;
+      let currentActiveClip = clipsList[0];
+      let currentClipIdx = 0;
+      let isDrawing = true;
+      let corsBlockedNotified = false;
+
+      function drawFrameLoop() {
+        if (!isDrawing) return;
+        try {
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        } catch (drawErr) {
+          if (!corsBlockedNotified) {
+            corsBlockedNotified = true;
+            showToast("Flux externe protégé par CORS : utilisez un fichier importé dans le Drive pour l'export vidéo.", 'warning');
+          }
+          ctx.fillStyle = '#0f172a';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        if (burnTitles && currentActiveClip) {
+          const pad = Math.round(canvas.height * 0.025);
+          const barH = Math.round(canvas.height * 0.085);
+          ctx.fillStyle = 'rgba(2, 6, 23, 0.82)';
+          ctx.fillRect(pad, pad, canvas.width - pad * 2, barH);
+
+          ctx.fillStyle = currentActiveClip.teamCode === 'A' ? '#10b981' : '#f43f5e';
+          ctx.fillRect(pad, pad, 8, barH);
+
+          ctx.font = `bold ${Math.round(barH * 0.42)}px Inter, sans-serif`;
+          ctx.fillStyle = '#ffffff';
+          const title = `#${currentClipIdx + 1}/${clipsList.length}  |  ${currentActiveClip.teamName} : ${currentActiveClip.action.toUpperCase()}`;
+          ctx.fillText(title, pad + 20, pad + Math.round(barH * 0.46));
+
+          ctx.font = `${Math.round(barH * 0.30)}px monospace`;
+          ctx.fillStyle = '#fbbf24';
+          const sub = `Chrono Match: ${formatTime(video.currentTime)}  •  Zone: ${currentActiveClip.zone}`;
+          ctx.fillText(sub, pad + 20, pad + Math.round(barH * 0.84));
+        }
+
+        requestAnimationFrame(drawFrameLoop);
+      }
+
+      activeRecorder.start(200);
+      requestAnimationFrame(drawFrameLoop);
+
+      for (let i = 0; i < clipsList.length; i++) {
+        if (isExportCancelled) break;
+        currentClipIdx = i;
+        currentActiveClip = clipsList[i];
+        const clip = clipsList[i];
+        const clipDur = Math.max(0.5, clip.endTime - clip.startTime);
+
+        statusText.innerHTML = `<i class="fa-solid fa-circle-dot text-rose-500 animate-pulse mr-2"></i> Enregistrement séquence ${i + 1}/${clipsList.length} : ${clip.action}`;
+
+        await new Promise((resolve) => {
+          const onSeeked = () => {
+            video.removeEventListener('seeked', onSeeked);
+            video.play();
+
+            const checkInterval = setInterval(() => {
+              if (isExportCancelled) {
+                clearInterval(checkInterval);
+                resolve();
+                return;
+              }
+              const currentInClip = Math.max(0, Math.min(clipDur, video.currentTime - clip.startTime));
+              const pct = Math.min(99, Math.round(((elapsedEncoded + currentInClip) / totalDuration) * 100));
+              progressBar.style.width = `${pct}%`;
+              progressPct.innerText = `${pct}%`;
+
+              if (video.currentTime >= clip.endTime || video.ended) {
+                clearInterval(checkInterval);
+                video.pause();
+                elapsedEncoded += clipDur;
+                resolve();
+              }
+            }, 50);
+          };
+
+          video.addEventListener('seeked', onSeeked);
+          video.currentTime = clip.startTime;
+        });
+      }
+
+      isDrawing = false;
+
+      if (!isExportCancelled) {
+        progressBar.style.width = '100%';
+        progressPct.innerText = '100%';
+        statusText.innerHTML = `<i class="fa-solid fa-check text-emerald-400 mr-2"></i> Finalisation du fichier vidéo...`;
+
+        await new Promise((resolve) => {
+          activeRecorder.onstop = resolve;
+          activeRecorder.stop();
+        });
+
+        const finalBlob = new Blob(recordedChunks, { type: chosenMime || 'video/webm' });
+        const downloadUrl = URL.createObjectURL(finalBlob);
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        const safeName = baseFileName.replace(/[^a-zA-Z0-9_-]/g, '_');
+        a.download = `${safeName}_${Date.now()}.${ext}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(downloadUrl);
+        showToast('Vidéo du montage téléchargée avec succès !', 'success');
+      }
+
+      renderBtn.disabled = false;
+      setTimeout(() => {
+        progressBox.classList.add('hidden');
+      }, 2000);
+    }
+
+    // =========================================================================
+    // 17. DATA EXPORT (FIXED BLOB ENCODING), IMPORT & CLEAR
+    // =========================================================================
+    window.exportCSV = function () {
+      if (eventsLog.length === 0) {
+        showToast("Aucun événement à exporter pour le moment.", 'warning');
+        return;
+      }
+      let csvContent = "\uFEFFID,Timestamp_Sec,Debut_Sec,Fin_Sec,Temps_Formate,Code_Equipe,Nom_Equipe,Action,Categorie,Resultat,Zone_Terrain,Coord_X,Coord_Y\n";
+      eventsLog.forEach(ev => {
+        csvContent += `${ev.id},${ev.timestamp.toFixed(2)},${ev.startTime.toFixed(2)},${ev.endTime.toFixed(2)},${ev.timeFormatted},"${ev.teamCode}","${ev.teamName.replace(/"/g, '""')}","${ev.action.replace(/"/g, '""')}","${ev.category}","${ev.result}","${ev.zone}",${ev.pitchCoords.x},${ev.pitchCoords.y}\n`;
+      });
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `analyse_rugby_${currentMatchId}_${Date.now()}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    };
+
+    window.exportJSON = function () {
+      const data = {
+        clubCode: currentClub?.clubCode || '',
+        clubName: currentClub?.clubName || '',
+        matchId: currentMatchId,
+        matchA: document.getElementById('teamA-name').value,
+        matchB: document.getElementById('teamB-name').value,
+        videoUrl: currentMatchVideoUrl || '',
+        exportedAt: new Date().toISOString(),
+        events: eventsLog
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `analyse_rugby_${currentMatchId}_${Date.now()}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    };
+
+    window.importJSON = function (event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async function (e) {
+        try {
+          const importedData = JSON.parse(e.target.result);
+          if (importedData.matchA) document.getElementById('teamA-name').value = importedData.matchA;
+          if (importedData.matchB) document.getElementById('teamB-name').value = importedData.matchB;
+          updateTeamLabels(false);
+
+          if (Array.isArray(importedData.events)) {
+            const pre = parseFloat(document.getElementById('preroll-sec').value) || 5;
+            const post = parseFloat(document.getElementById('postroll-sec').value) || 5;
+            eventsLog = importedData.events.map(ev => ({
+              ...ev,
+              startTime: ev.startTime !== undefined ? ev.startTime : Math.max(0, ev.timestamp - pre),
+              endTime: ev.endTime !== undefined ? ev.endTime : (ev.timestamp + post),
+              selectedForMontage: ev.selectedForMontage !== undefined ? ev.selectedForMontage : true
+            }));
+            renderLogs();
+            updateStats();
+            await persistActiveMatchState();
+            await loadClubMatchesList();
+            showToast(`Importation réussie et enregistrée dans le Club (${eventsLog.length} événements).`, 'success');
+          }
+        } catch (err) {
+          showToast("Erreur lors de la lecture du fichier JSON : " + err.message, 'error');
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    };
+
+    window.requestClearAllData = function () {
+      showConfirmDialog(
+        "Réinitialiser les séquences du match ?",
+        "Toutes les actions taguées de ce match seront effacées pour l'ensemble du club.",
+        async () => {
+          eventsLog = [];
+          stopSequencePlayback();
+          renderLogs();
+          updateStats();
+          await persistActiveMatchState();
+          await loadClubMatchesList();
+          showToast("Journal des séquences réinitialisé.", 'info');
+        }
+      );
+    };
+
+    // =========================================================================
+    // 18. COACH REPORT & SHARING SUMMARY
+    // =========================================================================
+    window.openReportModal = function () {
+      const modal = document.getElementById('report-modal');
+      const teamA = document.getElementById('teamA-name').value || "ÉQUIPE A";
+      const teamB = document.getElementById('teamB-name').value || "ÉQUIPE B";
+
+      document.getElementById('report-match-title').innerText = `${teamA} vs ${teamB} (${currentMatchId})`;
+      document.getElementById('report-date-str').innerText = `Club: ${currentClub?.clubName || ''} • Généré le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}`;
+      document.getElementById('report-total-tags').innerText = eventsLog.length;
+
+      const tackles = eventsLog.filter(e => e.category === 'Plaquages');
+      const tacklesMade = tackles.filter(e => e.result === 'success').length;
+      const tacklesPct = tackles.length > 0 ? Math.round((tacklesMade / tackles.length) * 100) : 0;
+      document.getElementById('report-tackle-rate').innerText = `${tacklesPct}%`;
+
+      const lineouts = eventsLog.filter(e => e.category === 'Touches');
+      const lineoutsWon = lineouts.filter(e => e.result === 'success').length;
+      const lineoutsPct = lineouts.length > 0 ? Math.round((lineoutsWon / lineouts.length) * 100) : 0;
+      document.getElementById('report-lineout-rate').innerText = `${lineoutsPct}%`;
+
+      const scrums = eventsLog.filter(e => e.category === 'Mêlées');
+      const scrumsWon = scrums.filter(e => e.result === 'success').length;
+      const scrumsPct = scrums.length > 0 ? Math.round((scrumsWon / scrums.length) * 100) : 0;
+      document.getElementById('report-scrum-rate').innerText = `${scrumsPct}%`;
+
+      const penCount = eventsLog.filter(e => e.action.includes('Concédée')).length;
+      document.getElementById('report-penalty-count').innerText = penCount;
+
+      const reportTbody = document.getElementById('report-table-body');
+      reportTbody.innerHTML = '';
+      eventsLog.forEach(ev => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="py-1 px-2 font-mono text-emerald-400 font-bold">${ev.timeFormatted}</td>
+          <td class="py-1 px-2 font-bold">${ev.teamName}</td>
+          <td class="py-1 px-2 font-semibold">${ev.action}</td>
+          <td class="py-1 px-2 text-slate-400">${ev.zone}</td>
+        `;
+        reportTbody.appendChild(tr);
+      });
+
+      modal.classList.remove('hidden');
+    };
+
+    window.closeReportModal = function () {
+      document.getElementById('report-modal').classList.add('hidden');
+    };
+
+    window.copySharePackage = function () {
+      const teamA = document.getElementById('teamA-name').value || "ÉQUIPE A";
+      const teamB = document.getElementById('teamB-name').value || "ÉQUIPE B";
+      updateBrowserUrl();
+      const shareUrl = document.getElementById('club-invite-url-input').value || window.location.href;
+
+      const tackles = eventsLog.filter(e => e.category === 'Plaquages');
+      const tacklesMade = tackles.filter(e => e.result === 'success').length;
+      const tacklesPct = tackles.length > 0 ? Math.round((tacklesMade / tackles.length) * 100) : 0;
+
+      const lineouts = eventsLog.filter(e => e.category === 'Touches');
+      const lineoutsWon = lineouts.filter(e => e.result === 'success').length;
+      const lineoutsPct = lineouts.length > 0 ? Math.round((lineoutsWon / lineouts.length) * 100) : 0;
+
+      const lineBreaks = eventsLog.filter(e => e.action === 'Franchissement').length;
+      const kicksSuccess = eventsLog.filter(e => e.action.includes('3 Pts Réussi')).length;
+      const kicksFailed = eventsLog.filter(e => e.action.includes('3 Pts Échoué')).length;
+
+      let summaryText = `RAPPORT D'ANALYSE RUGBY (${currentClub?.clubName || 'CLUB'}): ${teamA} vs ${teamB}\n`;
+      summaryText += `Accès Direct Club & Match (${currentMatchId}): ${shareUrl}\n`;
+      summaryText += `------------------------------------\n`;
+      summaryText += `STATISTIQUES CLÉS:\n`;
+      summaryText += `• Franchissements: ${lineBreaks}\n`;
+      summaryText += `• Tirs 3 Pts (Pénalités/Drops): ${kicksSuccess} réussis / ${kicksSuccess + kicksFailed} tentés\n`;
+      summaryText += `• Plaquages réussis: ${tacklesPct}% (${tacklesMade}/${tackles.length})\n`;
+      summaryText += `• Touches gagnées: ${lineoutsPct}% (${lineoutsWon}/${lineouts.length})\n`;
+      summaryText += `• Pénalités concédées: ${eventsLog.filter(e => e.action.includes('Concédée')).length}\n`;
+      summaryText += `• Total séquences codées: ${eventsLog.length}\n\n`;
+      summaryText += `DERNIÈRES ACTIONS:\n`;
+
+      eventsLog.slice(0, 5).forEach(ev => {
+        summaryText += `[${ev.timeFormatted}] ${ev.teamName} - ${ev.action} (${ev.zone})\n`;
+      });
+
+      const tempTextArea = document.createElement("textarea");
+      tempTextArea.value = summaryText;
+      document.body.appendChild(tempTextArea);
+      tempTextArea.select();
+      document.execCommand("copy");
+      document.body.removeChild(tempTextArea);
+
+      showToast("Synthèse statistique et lien d'accès Club copiés !", 'success');
+    };
+
+    // =========================================================================
+    // 19. KEYBOARD SHORTCUTS SYSTEM (AZERTY)
+    // =========================================================================
+    function setupKeyboardShortcuts() {
+      document.addEventListener('keydown', (e) => {
+        if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
+        if (!currentClub) return;
+
+        const key = e.key.toLowerCase();
+
+        switch (key) {
+          case ' ':
+            e.preventDefault();
+            togglePlayPause();
+            break;
+          case 'arrowleft':
+            e.preventDefault();
+            skipTime(-5);
+            break;
+          case 'arrowright':
+            e.preventDefault();
+            skipTime(5);
+            break;
+
+          // ATTAQUE
+          case 'a':
+            tagEvent('Franchissement', 'Attaque', 'success');
+            break;
+          case 'z':
+            tagEvent('Offload', 'Attaque', 'success');
+            break;
+          case 'e':
+            tagEvent('En-Avant', 'Attaque', 'fail');
+            break;
+
+          // JEU AU PIED & POINTS
+          case 'o':
+            tagEvent('Coup de pied occupation', 'Jeu au pied', 'neutral');
+            break;
+          case 'l':
+            tagEvent('Coup de pied tactique', 'Jeu au pied', 'neutral');
+            break;
+          case 'n':
+            tagEvent('Essai Marqué', 'Points', 'success');
+            break;
+          case 'u':
+            tagEvent('Tir 3 Pts Réussi', 'Points', 'success');
+            break;
+          case 'y':
+            tagEvent('Tir 3 Pts Échoué', 'Points', 'fail');
+            break;
+
+          // RUCKS
+          case 'r':
+            tagEvent('Ruck Off Gagné', 'Rucks', 'success');
+            break;
+          case 't':
+            tagEvent('Ruck Perdu', 'Rucks', 'fail');
+            break;
+          case 'f':
+            tagEvent('Ruck Def Gagné', 'Rucks', 'success');
+            break;
+          case 'g':
+            tagEvent('Grattage', 'Rucks', 'success');
+            break;
+
+          // PLAQUAGES
+          case 'q':
+            tagEvent('Plaquage Réussi', 'Plaquages', 'success');
+            break;
+          case 'd':
+            tagEvent('Plaquage Manqué', 'Plaquages', 'fail');
+            break;
+          case 's':
+            tagEvent('Plaquage Offensif', 'Plaquages', 'success');
+            break;
+
+          // FAUTES & PÉNALITÉS
+          case 'w':
+            tagEvent('Pénalité Obtenue', 'Pénalités', 'success');
+            break;
+          case 'x':
+            tagEvent('Pénalité Concédée', 'Pénalités', 'fail');
+            break;
+
+          // TOUCHES
+          case 'c':
+            tagEvent('Touche Gagnée', 'Touches', 'success');
+            break;
+          case 'v':
+            tagEvent('Touche Volée', 'Touches', 'success');
+            break;
+          case 'b':
+            tagEvent('Touche Perdue', 'Touches', 'fail');
+            break;
+
+          // MÊLÉES
+          case 'h':
+            tagEvent('Mêlée +', 'Mêlées', 'success');
+            break;
+          case 'j':
+            tagEvent('Mêlée -', 'Mêlées', 'fail');
+            break;
+        }
+      });
+    }
+  </script>
+</body>
+</html>
